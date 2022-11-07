@@ -6,19 +6,50 @@ log = logging.getLogger(__name__)
 
 def read_nddata(filename, column_nb, end=None, err=True, dtype=float, single_err=False, sep=None, strip=None, verbose=False):
     """
-    Helper function that reads a text file with the correct format and returns the data, with errors and upper or lower limits.
-    If err is True it assumes format of file is:     1) data     2) error plus     3) error minus
-    If err is False, it sets them to 0.
-    If single_err is True it assumes format of file is: 1) data     2) error
+    Helper function that reads a text file with the correct format and
+    returns the data, with errors and upper or lower limits in the form:
+        data[0] = data        (float by default)
+        data[1] = plus error  (float by default)
+        data[2] = minus error (float by default)
+        data[3] = upper limit (float by default)
+        data[4] = lower limit (float by default)
     If there is no data it fills the errors with NaN.
     Otherwise if the data exists but it doesn't find errors it will set them to 0.
     Upper and lower limits and converted to 1 for True, and 0 for False in the requested dtype.
-    Returns data as a list of numpy.ndarray with by default:
-        data[0] = data        (float)
-        data[1] = plus error  (float)
-        data[2] = minus error (float)
-        data[3] = upper limit (float)
-        data[4] = lower limit (float)
+
+    Parameters
+    ----------
+    filename : str, pathlib.Path
+        Filename to read.
+    column_nb : int
+        Column number, 0-indexed.
+    end : int, optional
+        Maximum number of lines to read.
+    err : bool, optional
+        If err is True it assumes format of file is:
+        1) data, 2) error plus, 3) error minus
+        If err is False, it sets them to 0.
+    dtype : data-type, optional
+        Data type in which to cast the resulting array.
+    single_err : bool, optional
+        If single_err is True it assumes format of file is:
+        1) data, 2) error
+    sep : str, optional
+        The string used to separate values (passed to str.split()).
+    strip : str, optional
+        The string used to strip the lines (passed to str.strip()).
+    verbose : bool, optional
+        Activate verbosity.
+
+    Returns
+    -------
+    out : ndarray
+        Data read from the text file in the following format:
+            data[0] = data
+            data[1] = plus error
+            data[2] = minus error
+            data[3] = upper limit
+            data[4] = lower limit
     """
     data = [[], [], [], [], []]
     f = open(filename, 'r')
