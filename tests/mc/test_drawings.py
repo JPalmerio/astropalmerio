@@ -1,16 +1,16 @@
 
 import numpy as np
 import unittest
-from astropalmerio.mc.drawings import sample_flat_PDF, sample_from_CDF
+from astropalmerio.mc.drawings import sample_uniform_between, sample_from_CDF
 
 
 class TestDrawings(unittest.TestCase):
 
-    def test_flat_PDF(self):
+    def test_uniform_sample(self):
         np.random.seed(0)
-        draw = sample_flat_PDF(0, 1, 1)
+        draw = sample_uniform_between(0, 1, nb_draws=1)
         assert (draw >= 0) and (draw <= 1)
-        draw = sample_flat_PDF(-1., 1., 100)
+        draw = sample_uniform_between(-1., 1., nb_draws=100)
         assert len(draw) == 100
         assert all(draw >= -1) and all(draw <= 1)
 

@@ -6,7 +6,7 @@ from .utils import get_corresponding_y_value
 log = logging.getLogger(__name__)
 
 
-def sample_flat_PDF(val_max, val_min, nb_draws=1000):
+def sample_uniform_between(val_max, val_min, nb_draws=1000):
     """
     Sample uniformly between maximum and minimum.
     """
