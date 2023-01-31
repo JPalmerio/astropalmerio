@@ -38,10 +38,10 @@ class TestMCvar(unittest.TestCase):
             MC_var(value=10., error=[None])
 
         # Check limits
-        x = MC_var(value=10., lolim=True)
-        assert x.lim['lower'] is True
-        x = MC_var(value=10., uplim=True)
-        assert x.lim['upper'] is True
+        with self.assertRaises(ValueError):
+            x = MC_var(value=10., lolim=True)
+        with self.assertRaises(ValueError):
+            x = MC_var(value=10., uplim=True)
 
         # Check min and max value
         MC_var(value=10., lolim=True, val_max=11.)
