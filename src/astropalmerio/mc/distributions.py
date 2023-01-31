@@ -1,6 +1,7 @@
 import logging
 import numpy as np
 from scipy.stats import norm
+from scipy.integrate import trapezoid
 
 log = logging.getLogger(__name__)
 
@@ -134,34 +135,52 @@ def flat_pdf(x, lower, upper):
     return pdf
 
 
-def flat_pdf_for_limits(x, data, ul=False, ll=False, ul_min_val=None, ll_max_val=None):
+def asym_normal_pdf(x, mu, sigma1, sigma2, val_min=None, val_max=None):
+    if sigma1 == sigma2:
+        pdf = norm.pdf(x, loc=mu, scale=sigma1)
+    else:
+        pdf = anpdf(x, mu=mu, s1=sigma1, s2=sigma2)
+    # if bounds, cut the PDF
+    if val_min is not None:
+        pdf = np.where(x < val_min, 0, pdf)
+    if val_max is not None:
+        pdf = np.where(x > val_max, 0, pdf)
+    # And renormalize PDF
+    if (val_min is not None) or (val_max is not None):
+        renorm = trapezoid(pdf, x)
+        pdf /= renorm
+
+    return pdf
+
+
+def flat_pdf_for_limits(x, value, uplim=False, lolim=False, val_min=None, val_max=None):
     """
-    Return a flat pdf in the case of upper limits (ul) or lower limits (ll).
+    Return a flat pdf in the case of upper limits (uplim) or lower limits (lolim).
     This flat pdf is based on the principle of least information.
     In the case where there are both upper and lower limits on the data, a uniform pdf between
     those values is returned.
     """
-    if ll and ll_max_val is None:
+    if lolim and val_max is None:
         raise ValueError(
-            "If using a lower-limit (ll=True), you must provide a maximum value "
-            "to set a bound on the flat pdf with ll_max_val."
+            "If using a lower-limit (lolim=True), you must provide a maximum value "
+            "to set a bound on the flat pdf with val_max."
         )
 
-    if ul and ul_min_val is None:
+    if uplim and val_min is None:
         raise ValueError(
-            "If using an upper-limit (ul=True), you must provide a minimum value "
-            "to set a bound on the flat pdf with ul_min_val."
+            "If using an upper-limit (uplim=True), you must provide a minimum value "
+            "to set a bound on the flat pdf with val_min."
         )
 
-    if ll and not ul:
-        pdf = flat_pdf(x, data, ll_max_val)
-    elif ul and not ll:
-        pdf = flat_pdf(x, ul_min_val, data)
-    elif ll and ul:
-        pdf = flat_pdf(x, ul_min_val, ll_max_val)
+    if lolim and not uplim:
+        pdf = flat_pdf(x, value, val_max)
+    elif uplim and not lolim:
+        pdf = flat_pdf(x, val_min, value)
+    elif lolim and uplim:
+        pdf = flat_pdf(x, val_min, val_max)
     else:
         raise ValueError(
             "If you don't have limits, don't use this function. "
-            "Perhaps you forgot to set ul or ll to True."
+            "Perhaps you forgot to set uplim or lolim to True."
         )
     return pdf

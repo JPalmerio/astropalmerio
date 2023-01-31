@@ -6,7 +6,7 @@ from .utils import get_corresponding_y_value
 log = logging.getLogger(__name__)
 
 
-def sample_uniform_between(val_max, val_min, nb_draws=1000):
+def sample_uniform_between(val_min, val_max, nb_draws=1000):
     """
     Sample uniformly between maximum and minimum.
     """
@@ -52,11 +52,11 @@ def sample_from_CDF(x, Fx, nb_draws, val_min=None, val_max=None):
     return drawings
 
 
-def asym_gaussian_draw(
+def sample_asym_norm(
     mu, sigma1, sigma2, nb_draws=1000, precision=500, val_min=None, val_max=None
 ):
     """
-    Function that draws randomly in a asymmetric gaussian distribution.
+    Function that draws randomly in a asymmetric normal (Gaussian) distribution.
     in the form :   { exp( -(x-mu)**2/(2*sigma1**2) )     if x < mu
                     { exp( -(x-mu)**2/(2*sigma2**2) )     if x >= mu
     Returns an array of the drawings
@@ -71,25 +71,17 @@ def asym_gaussian_draw(
     if sigma1 == 0:
         if mu == 0:
             sigma1 = 1e-9
-            log.warning(
-                "In asym_gaussian_draw: sigma1 and mu are equal to zero, replacing sigma1 by 1e-9"
-            )
+            log.warning("Sigma1 and mu are equal to zero, replacing sigma1 by 1e-9")
         else:
             sigma1 = 1e-9 * mu
-            log.warning(
-                "In asym_gaussian_draw: sigma1 is equal to zero, replacing sigma1 by mu * 1e-9"
-            )
+            log.warning("Sigma1 is equal to zero, replacing sigma1 by mu * 1e-9")
     elif sigma2 == 0:
         if mu == 0:
             sigma2 = 1e-9
-            log.warning(
-                "In asym_gaussian_draw: sigma2 and mu are equal to zero, replacing sigma2 by 1e-9"
-            )
+            log.warning("Sigma2 and mu are equal to zero, replacing sigma2 by 1e-9")
         else:
             sigma2 = 1e-9 * mu
-            log.warning(
-                "In asym_gaussian_draw: sigma2 is equal to zero, replacing sigma2 by mu * 1e-9"
-            )
+            log.warning("Sigma2 is equal to zero, replacing sigma2 by mu * 1e-9")
 
     # limits
     x_min = mu - 10.0 * sigma1

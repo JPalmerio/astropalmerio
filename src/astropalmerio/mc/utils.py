@@ -4,6 +4,68 @@ import numpy as np
 log = logging.getLogger(__name__)
 
 
+def quantiles(array_2D, confidence=95.0, axis=0):
+    """
+    Convenience function to quickly calculate the quantiles defined
+    by the confidence level, along a given axis of a 2D array.
+    This is meant to be used with a 2D array of CDF or histogram of
+    realizations of a given sample of size (N_real, N_bins), where:
+
+    - N_real stands for the number of realizations (MC or bootstrap)
+    - N_bins stands for the number of bins within the histogram/CDF
+
+    If the input array is of the size (N_bins, N_real) instead,
+    either provide the transpose of that array or use axis=1.
+
+    Returns the median, lower and upper bounds of the histogram/CDF
+    (for each bin) at the desired confidence level.
+    """
+
+    # Create percentiles:
+    lower_percentile = (1.0 - confidence / 100.0) / 2.0
+    upper_percentile = 1.0 - lower_percentile
+    # Compute the percentiles for each bin
+    median = np.quantile(array_2D, 0.5, axis=axis)
+    lower = np.quantile(array_2D, lower_percentile, axis=axis)
+    upper = np.quantile(array_2D, upper_percentile, axis=axis)
+    return median, lower, upper
+
+
+def binned_CDFs_from_realizations(realizations, bins=1000, weights=None):
+    """
+    Takes in a 2D array of size (N_real, N_sample) and computes the
+    CDF for each realization. The CDFs are sampled given a certain
+    precision determined from the bins; this is necessary for the
+    different CDFs of each realization to be defined on the same
+    grid/domain. This allows to create confidence intervals on each
+    bin/element of the grid.
+
+    - N_real stands for the number of realizations (MC or bootstrap)
+    - N_sample stands for the number of objects in the sample
+
+    If the input array is of the size (N_sample, N_real) instead,
+    provide the transpose of that array.
+    """
+    N_real = realizations.shape[0]
+
+    if isinstance(bins, (int, float)):
+        bins = np.linspace(realizations.min(), realizations.max(), bins + 1)
+
+    precision = bins.shape[0] - 1
+
+    # Compute the CDF for each subsample realization
+    CDFs = np.zeros((N_real, precision))
+    for i in range(N_real):
+        if weights is None:
+            hist, bins_ = np.histogram(realizations[i], bins=bins, weights=None)
+        else:
+            hist, bins_ = np.histogram(realizations[i], bins=bins, weights=weights[i])
+
+        CDFs[i, :] = np.cumsum(hist).astype(float) / float(np.sum(hist))
+
+    return bins, CDFs
+
+
 def unbinned_empirical_cdf(data, weights=None):
     """
     From the answer of Dave at http://stackoverflow.com/questions/3209362/how-to-plot-empirical-cdf-in-matplotlib-in-python
