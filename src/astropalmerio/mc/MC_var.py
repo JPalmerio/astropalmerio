@@ -92,16 +92,11 @@ class MC_var(object):
             string = "{:.3e} +/- [{:.2e}, {:.2e}]".format(
                 self.value, self.error["plus"], self.error["minus"]
             )
-        else:
-            if self.lim["upper"] and self.lim["lower"]:
-                string = "{:.3e} < {:.3e} < {:.3e}".format(
-                    self.bounds["min"], self.value, self.bounds["max"]
-                )
-                return string
-            elif self.lim["upper"]:
-                string = "<{:.3e}".format(self.value)
-            elif self.lim["lower"]:
-                string = ">{:.3e}".format(self.value)
+        elif self.lim["upper"]:
+            string = "<{:.3e}".format(self.value)
+        elif self.lim["lower"]:
+            string = ">{:.3e}".format(self.value)
+
         if self.bounds["min"] is not None:
             string += ", minimum allowed value is {:.3e}".format(self.bounds["min"])
         if self.bounds["max"] is not None:

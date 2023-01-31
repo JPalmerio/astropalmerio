@@ -60,6 +60,8 @@ class TestMCvar(unittest.TestCase):
             MC_var(value=10., error=[1,2], uplim=True)
 
     def test_MC_var_str(self):
-        x = MC_var(value=10., error=3)
-        print(x)
+        print(MC_var(value=10., error=3))
+        print(MC_var(value=10., lolim=True, val_max=11.))
+        print(MC_var(value=10., uplim=True, val_max=9.))
+
 
