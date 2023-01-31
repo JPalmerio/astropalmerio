@@ -36,9 +36,9 @@ class TestDrawings(unittest.TestCase):
         assert all(draw >= 1) and all(draw <= 3)
         # Invalid value for val_min and val_max
         with self.assertRaises(ValueError):
-            draw = sample_from_CDF(x, Fx, nb_draws=100, val_min=10)
+            draw = sample_from_CDF(x, Fx, nb_draws=100, val_min=x.max()+10)
         with self.assertRaises(ValueError):
-            draw = sample_from_CDF(x, Fx, nb_draws=100, val_max=-10)
+            draw = sample_from_CDF(x, Fx, nb_draws=100, val_max=x.min()-10)
 
 
 

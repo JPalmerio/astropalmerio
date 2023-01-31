@@ -29,11 +29,11 @@ These capabilities are gathered in the ``sample_from_CDF()`` function:
 .. autofunction:: astropalmerio.mc.drawings.sample_from_CDF
 
 Restricting the sampling interval
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+---------------------------------
 Sometimes, one wants to confine a variable to a certain interval during a sampling process.
 This is particularly true when performing error propagation in the physical sciences.
-For instance, say you measured a distance to be :math:`3 \pm 1` centimeters, if you sample from this, assuming a Normal distribution centered on 3 and with a standard deviation of 1, you may get some negative values for large enough sample sizes.
-In this case, you would restrict the sampling interval to be at minimum 0.
+For instance, say you measured a distance to be :math:`3 \pm 1` centimeters, if you sample from this, assuming a Normal distribution centered on :math:`3` and with a standard deviation of :math:`1`, you may get some negative values for large enough sample sizes.
+In this case, you would restrict the sampling interval to be at minimum :math:`0`.
 This can be achieved by passing the ``val_min=0`` argument to the ``sample_from_CDF()`` function.
 
 An illustration of restricting the sampling interval is shown in :numref:`CDF sampling with bounds`.
