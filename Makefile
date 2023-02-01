@@ -21,6 +21,6 @@ coverage:
 	@coverage xml -o reports/coverage.xml
 	@coverage report
 
-installe:
+install:
 	@echo 'Installing astropalmerio in editable mode'
 	pip install -e .
