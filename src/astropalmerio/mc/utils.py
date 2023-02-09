@@ -96,29 +96,38 @@ def format_to_string(
     return formatted_string
 
 
-def get_errorbars(data_MC):
+def get_errorbars(data, confidence=0.68, axis=0):
     """Summary
-
+    
     Parameters
     ----------
-    data_MC : TYPE
+    data : TYPE
         Description
-
+    confidence : float, optional
+        Description
+    axis : int, optional
+        Description
+    
     Returns
     -------
     TYPE
         Description
+    
+    Deleted Parameters
+    ------------------
+    data_MC : TYPE
+        Description
     """
-    value, low, upp = quantiles(data_MC)
+    value, low, upp = quantiles(data, confidence=confidence, axis=axis)
     errm = value - low
     errp = upp - value
     return value, errm, errp
 
 
-def quantiles(array_2D, confidence=95.0, axis=0):
+def quantiles(array, confidence=0.68, axis=0):
     """
     Convenience function to quickly calculate the quantiles defined
-    by the confidence level, along a given axis of a 2D array.
+    by the confidence level, along a given axis of an array.
     This is meant to be used with a 2D array of CDF or histogram of
     realizations of a given sample of size (N_real, N_bins), where:
 
@@ -133,12 +142,12 @@ def quantiles(array_2D, confidence=95.0, axis=0):
     """
 
     # Create percentiles:
-    lower_percentile = (1.0 - confidence / 100.0) / 2.0
+    lower_percentile = (1.0 - confidence) / 2.0
     upper_percentile = 1.0 - lower_percentile
     # Compute the percentiles for each bin
-    median = np.quantile(array_2D, 0.5, axis=axis)
-    lower = np.quantile(array_2D, lower_percentile, axis=axis)
-    upper = np.quantile(array_2D, upper_percentile, axis=axis)
+    median = np.quantile(array, 0.5, axis=axis)
+    lower = np.quantile(array, lower_percentile, axis=axis)
+    upper = np.quantile(array, upper_percentile, axis=axis)
     return median, lower, upper
 
 
