@@ -48,6 +48,65 @@ def show_flux_integration_bounds(
     return
 
 
+def plot_spectrum(wvlg, flux, error=None, ax=None, **kwargs):
+    """Summary
+
+    Parameters
+    ----------
+    ax : None, optional
+        Description
+    color : str, optional
+        Description
+    **kwargs
+        Description
+    """
+    if ax is None:
+        ax = plt.gca()
+
+    ax.plot(
+        wvlg,
+        flux,
+        drawstyle="steps-mid",
+        color=kwargs.get("color", "k"),
+        lw=kwargs.get("lw", 1),
+        **kwargs,
+    )
+    if error is not None:
+        ax.fill_between(
+            wvlg.value,
+            error.value,
+            color=kwargs.get("color", "k"),
+            alpha=kwargs.get("alpha", 0.2),
+            step="mid",
+            **kwargs,
+        )
+
+
+def show_regions(regions, ax=None, **kwargs):
+    """Summary
+
+    Parameters
+    ----------
+    regions : TYPE
+        List of 2-tuple containing the lower and upper bounds of the
+        region.
+    ax : None, optional
+        Description
+    """
+    if ax is None:
+        ax = plt.gca()
+    for i, reg in enumerate(regions):
+        ax.axvline(reg[0].value, lw=kwargs.get("lw", 0.5))
+        ax.axvline(reg[1].value, lw=kwargs.get("lw", 0.5))
+        ax.axvspan(
+            reg[0].value,
+            reg[1].value,
+            alpha=kwargs.get("alpha", 0.05),
+            **kwargs,
+        )
+    return
+
+
 def fig_resid(figsize=(10, 7)):
     fig = plt.figure(figsize=figsize)
     ax_center = fig.add_axes([0.0, 0.20, 0.90, 0.80])

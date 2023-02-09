@@ -98,7 +98,7 @@ def format_to_string(
 
 def get_errorbars(data, confidence=0.68, axis=0):
     """Summary
-    
+
     Parameters
     ----------
     data : TYPE
@@ -107,12 +107,12 @@ def get_errorbars(data, confidence=0.68, axis=0):
         Description
     axis : int, optional
         Description
-    
+
     Returns
     -------
     TYPE
         Description
-    
+
     Deleted Parameters
     ------------------
     data_MC : TYPE

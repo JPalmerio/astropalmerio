@@ -11,16 +11,15 @@ from astropalmerio.mc.realizations import MC_realization
 log = logging.getLogger(__name__)
 
 
-def sum_flux(
+def integrate_flux(
     wvlg, flux, wvlg_min, wvlg_max, error=None, continuum=None, MC=False, N_MC=1000
 ):
     """
-    Calculate the summed flux over a given wavelength range.
+    Calculate the integrated flux over a given wavelength range.
     This can be used to estimated the flux of a line.
-    This function supports unequal wavelength grids.
     Continuum can be specified and will be subtracted to the
-    monochromatic flux array.
-    Returns the error on the summed flux if err is provided
+    flux density array.
+    Returns the error on the summed flux if error is provided
     (assumes the error is the standard deviation).
     """
     imin = wvlg.searchsorted(wvlg_min)
@@ -29,7 +28,6 @@ def sum_flux(
     if continuum is None:
         continuum = np.zeros(flux.shape[0])
 
-    # wvlg_step = wvlg[imin:imax] - wvlg[imin - 1 : imax - 1]
     wvlg_step = wvlg[1] - wvlg[0]
     sub_flux = flux[imin:imax] - continuum[imin:imax]
     flux_summed = np.sum(sub_flux * wvlg_step)
@@ -44,7 +42,7 @@ def sum_flux(
             flux_summed = np.quantile(flux_summed_real, 0.5)
             errm = flux_summed - np.quantile(flux_summed_real, 0.16)
             errp = np.quantile(flux_summed_real, 0.84) - flux_summed
-            error_summed = (errp, errm)
+            error_summed = (errm, errp)
         else:
             error_summed = np.sqrt(np.sum(sub_err**2 * wvlg_step**2))
     else:
