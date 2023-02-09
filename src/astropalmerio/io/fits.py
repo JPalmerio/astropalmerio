@@ -90,18 +90,26 @@ def read_fits_2D_spectrum(filename, verbose=False):
     A function to read data from a 2D spectrum.
     Returns wavelength in angstroms, spatial position in arcsec, flux and errors in erg/s/cm2/A.
     """
+
+    hdu_list = fits.open(filename)
+    hdu_names = [hdu.name for hdu in hdu_list]
     try:
-        hdu_list = fits.open(filename)
-        data_index = hdu_list.index_of("FLUX")
+        # Look for an extension name that contains the letters 'flux'
+        flux_hdu_name = [n for n in hdu_names if "flux" in n.lower()][0]
+        log.info(f"Found flux extension named: {flux_hdu_name}")
+        data_index = hdu_list.index_of(flux_hdu_name)
         data = fits.getdata(filename, ext=data_index)
-    except KeyError:
+    except IndexError:
         data_index = 0
         data = fits.getdata(filename, ext=data_index)
 
     try:
-        err_index = hdu_list.index_of("ERRS")
+        # Look for an extension name that contains the letters 'err'
+        err_hdu_name = [n for n in hdu_names if "err" in n.lower()][0]
+        log.info(f"Found error extension named: {err_hdu_name}")
+        err_index = hdu_list.index_of(err_hdu_name)
         error = fits.getdata(filename, ext=err_index)
-    except KeyError:
+    except IndexError:
         log.warning("No error extension found in file %s", filename)
         error = np.zeros(data.shape)
 
