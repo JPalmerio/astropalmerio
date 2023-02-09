@@ -4,6 +4,117 @@ import numpy as np
 log = logging.getLogger(__name__)
 
 
+def format_to_string(
+    value,
+    error=None,
+    lim_type=None,
+    exponent=None,
+    value_precision=2,
+    error_precision=2,
+):
+    """Summary
+
+    Parameters
+    ----------
+    value : TYPE
+        Description
+    error : None, optional
+        Description
+    lim_type : None, optional
+        Description
+    value_precision : int, optional
+        Description
+    error_precision : int, optional
+        Description
+
+    Returns
+    -------
+    TYPE
+        Description
+
+    Raises
+    ------
+    ValueError
+        Description
+    """
+    if error is not None and lim_type is not None:
+        log.warning(
+            "Both error and limits are not None, "
+            "make sure you know what you are doing."
+        )
+
+    if isinstance(exponent, int):
+        value = value / 10 ** int(exponent)
+        if isinstance(error, (float, int)):
+            error = float(error) / 10 ** int(exponent)
+        elif isinstance(error, (list, np.ndarray)):
+            error = np.array(error).astype(float) / 10 ** int(exponent)
+
+    val_str, exponent = f"{value:.{value_precision:d}e}".split("e")
+
+    # Don't print exponent if its only 0.1, 1, or 10
+    if int(exponent) in [-1, 0, 1]:
+        exponent_str = ""
+        val_str = f"{float(val_str)*10**int(exponent):.{value_precision:d}f}"
+    else:
+        exponent_str = rf" \times 10^{{{int(exponent):d}}}"
+
+    # Error
+    if error is None:
+        err_str = ""
+    elif isinstance(error, (float, int)):
+        error = float(error)
+        # Don't print exponent if its only 0.1, 1, or 10
+        if int(exponent) in [-1, 0, 1]:
+            error = error * 10 ** int(exponent)
+        errp = f"{error/10**int(exponent):.{error_precision:d}f}"
+        errm = errp
+        err_str = rf"^{{+{errp}}}_{{-{errm}}}"
+    elif isinstance(error, (list, np.ndarray)):
+        error = np.array(error).astype(float)
+        # Don't print exponent if its only 0.1, 1, or 10
+        if int(exponent) in [-1, 0, 1]:
+            error = error * 10 ** int(exponent)
+        errm = f"{error[0]/10**int(exponent):.{error_precision:d}f}"
+        errp = f"{error[1]/10**int(exponent):.{error_precision:d}f}"
+        err_str = f"^{{+{errp}}}_{{-{errm}}}"
+    else:
+        raise ValueError("Invalid input for error")
+
+    # Limit
+    if lim_type is None:
+        lim_str = ""
+    elif lim_type == "upper":
+        lim_str = "< "
+    elif lim_type == "lower":
+        lim_str = "> "
+    else:
+        raise ValueError("Invalid input for lim_type")
+
+    formatted_string = rf"${lim_str}{val_str}{err_str}{exponent_str}$"
+
+    return formatted_string
+
+
+def get_errorbars(data_MC):
+    """Summary
+
+    Parameters
+    ----------
+    data_MC : TYPE
+        Description
+
+    Returns
+    -------
+    TYPE
+        Description
+    """
+    value, low, upp = quantiles(data_MC)
+    errm = value - low
+    errp = upp - value
+    return value, errm, errp
+
+
 def quantiles(array_2D, confidence=95.0, axis=0):
     """
     Convenience function to quickly calculate the quantiles defined

@@ -150,8 +150,7 @@ def add_arrows_for_limits(
         the color).
     """
 
-    if isinstance(lim_val, (float, int)):
-        lim_val = np.array([lim_val])
+    lim_val = np.atleast_1d(lim_val)
 
     if ax is None:
         ax = plt.gca()
