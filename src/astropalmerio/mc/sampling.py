@@ -1,28 +1,62 @@
 import logging
 import numpy as np
+from numpy.random import default_rng, PCG64
 from .distributions import ancdf
 from .utils import get_corresponding_y_value
 
 log = logging.getLogger(__name__)
 
+rng = default_rng()
 
-def sample_uniform_between(val_min, val_max, nb_draws=1000):
+
+def bootstrap(sample, weights=None, random_state=None):
+    """
+        Bootstrap from a 2D array of size (N_real, N_samp) and return the bootstrapped array
+        with the RNG state (for reproductibility).
+        N_real stands for number of realizations
+        N_samp stands for size of the sample
+    """
+    N_real, sample_len = sample.shape
+    ind = rng.randint(sample_len, size=sample.shape)
+    sample_bootstrapped = np.zeros(sample.shape)
+    for i in range(N_real):
+        sample_bootstrapped[i] = sample[i][ind[i]]
+
+    if weights is None:
+        weights_bootstrapped = None
+    else:
+        weights_bootstrapped = np.zeros(sample.shape)
+        for i in range(N_real):
+            weights_bootstrapped[i] = weights[i][ind[i]]
+
+    return sample_bootstrapped, weights_bootstrapped
+
+
+def sample_uniform_between(val_min, val_max, nb_draws=1000, seed=None):
     """
     Sample uniformly between maximum and minimum.
     """
 
-    drawings = (val_max - val_min) * np.random.rand(nb_draws) + val_min
+    # Fix seed for reproducibility
+    if seed is not None:
+        rng.bit_generator.state = PCG64(seed).state
+
+    drawings = (val_max - val_min) * rng.random(nb_draws) + val_min
 
     return drawings
 
 
-def sample_from_CDF(x, Fx, nb_draws, val_min=None, val_max=None):
+def sample_from_CDF(x, Fx, nb_draws, val_min=None, val_max=None, seed=None):
     """
     Sample from Fx.
     """
 
     rand_min = np.min(Fx)
     rand_max = np.max(Fx)
+
+    # Fix seed for reproducibility
+    if seed is not None:
+        rng.bit_generator.state = PCG64(seed).state
 
     # Check for min bound
     if val_min is not None:
@@ -46,14 +80,14 @@ def sample_from_CDF(x, Fx, nb_draws, val_min=None, val_max=None):
         else:
             rand_max = get_corresponding_y_value(val_max, x, Fx)
 
-    rand = (rand_max - rand_min) * np.random.rand(nb_draws) + rand_min
+    rand = (rand_max - rand_min) * rng.random(nb_draws) + rand_min
     drawings = get_corresponding_y_value(rand, Fx, x)
 
     return drawings
 
 
 def sample_asym_norm(
-    mu, sigma1, sigma2, nb_draws=1000, precision=500, val_min=None, val_max=None
+    mu, sigma1, sigma2, nb_draws=1000, precision=500, val_min=None, val_max=None, seed=None
 ):
     """
     Function that draws randomly in a asymmetric normal (Gaussian) distribution.
@@ -92,6 +126,6 @@ def sample_asym_norm(
     Fx = ancdf(x, mu, sigma1, sigma2)
 
     # draw from generated distribution
-    draw = sample_from_CDF(x, Fx, nb_draws=nb_draws, val_min=val_min, val_max=val_max)
+    draw = sample_from_CDF(x, Fx, nb_draws=nb_draws, val_min=val_min, val_max=val_max, seed=seed)
 
     return draw

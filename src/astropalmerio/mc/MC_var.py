@@ -136,7 +136,7 @@ class MC_var(object):
         N_MC : int, optional
             Number of Monte Carlo realizations.
         seed : int, optional
-            Seed passed to `np.random.seed()` before sampling; used for
+            Seed passed to `BitGenerator` before sampling; used for
             reproducibility.
         force : bool, optional, Default `False`
             Force resampling if a realization of this MC_var already

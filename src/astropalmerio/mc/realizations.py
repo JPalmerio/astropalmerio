@@ -1,6 +1,9 @@
 import logging
 import numpy as np
-from .drawings import sample_asym_norm, sample_uniform_between
+from numpy.random import default_rng, PCG64
+from .sampling import sample_asym_norm, sample_uniform_between
+
+rng = default_rng()
 
 log = logging.getLogger(__name__)
 
@@ -228,28 +231,27 @@ def _MC_realization_scalar(
     # Create realizations
     realizations = np.zeros(N_MC)
 
-    # Fix seed for reproducibility
-    if seed is not None:
-        np.random.seed(seed)
-
     # If limits, draw uniform
     if uplim and lolim:
         realizations = sample_uniform_between(
-            val_min=val_min, val_max=val_max, nb_draws=N_MC
+            val_min=val_min, val_max=val_max, nb_draws=N_MC, seed=seed,
         )
     elif uplim and not lolim:
         realizations = sample_uniform_between(
-            val_min=val_min, val_max=data, nb_draws=N_MC
+            val_min=val_min, val_max=data, nb_draws=N_MC, seed=seed,
         )
     elif not uplim and lolim:
         realizations = sample_uniform_between(
-            val_min=data, val_max=val_max, nb_draws=N_MC
+            val_min=data, val_max=val_max, nb_draws=N_MC, seed=seed,
         )
     # If no limits draw asymmetric gaussian
     else:
         # If symmetric error and no bounding values, simply draw from numpy gaussian
         if (errm == errp) and (val_min is None) and (val_max is None):
-            realizations = np.random.normal(data, errp, N_MC)
+            # Fix seed for reproducibility
+            if seed is not None:
+                rng.bit_generator.state = PCG64(seed).state
+            realizations = rng.normal(loc=data, scale=errp, size=N_MC)
         else:
             realizations = sample_asym_norm(
                 data,
@@ -258,6 +260,7 @@ def _MC_realization_scalar(
                 nb_draws=N_MC,
                 val_min=val_min,
                 val_max=val_max,
+                seed=seed,
             )
 
     return realizations
