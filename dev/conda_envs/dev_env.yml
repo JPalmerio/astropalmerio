@@ -4,11 +4,11 @@ channels:
   - defaults
 dependencies:
   - python=3.9
-  - numpy=1.23
+  - numpy=1.24
   - matplotlib=3.6
   - pandas=1.5
-  - astropy=5.1
-  - scipy=1.9
+  - astropy=5.2
+  - scipy=1.10
   - jupyter
   - pytest
   - pylint
