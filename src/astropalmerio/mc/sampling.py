@@ -11,10 +11,10 @@ rng = default_rng()
 
 def bootstrap(sample, weights=None, random_state=None):
     """
-        Bootstrap from a 2D array of size (N_real, N_samp) and return the bootstrapped array
-        with the RNG state (for reproductibility).
-        N_real stands for number of realizations
-        N_samp stands for size of the sample
+    Bootstrap from a 2D array of size (N_real, N_samp) and return the bootstrapped array
+    with the RNG state (for reproductibility).
+    N_real stands for number of realizations
+    N_samp stands for size of the sample
     """
     N_real, sample_len = sample.shape
     ind = rng.randint(sample_len, size=sample.shape)
@@ -87,7 +87,14 @@ def sample_from_CDF(x, Fx, nb_draws, val_min=None, val_max=None, seed=None):
 
 
 def sample_asym_norm(
-    mu, sigma1, sigma2, nb_draws=1000, precision=500, val_min=None, val_max=None, seed=None
+    mu,
+    sigma1,
+    sigma2,
+    nb_draws=1000,
+    precision=500,
+    val_min=None,
+    val_max=None,
+    seed=None,
 ):
     """
     Function that draws randomly in a asymmetric normal (Gaussian) distribution.
@@ -126,6 +133,8 @@ def sample_asym_norm(
     Fx = ancdf(x, mu, sigma1, sigma2)
 
     # draw from generated distribution
-    draw = sample_from_CDF(x, Fx, nb_draws=nb_draws, val_min=val_min, val_max=val_max, seed=seed)
+    draw = sample_from_CDF(
+        x, Fx, nb_draws=nb_draws, val_min=val_min, val_max=val_max, seed=seed
+    )
 
     return draw

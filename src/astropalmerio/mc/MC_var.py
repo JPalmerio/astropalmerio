@@ -33,7 +33,6 @@ class MC_var(object):
         N_MC=10000,
         seed=None,
     ):
-
         if all(v is None for v in [error, lolim, uplim, val_max, val_min]):
             raise ValueError(
                 "You must specify either an error or an upper/lower limit, "

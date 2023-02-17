@@ -1,41 +1,70 @@
 import logging
 import numpy as np
 import astropy.units as u
+from astropy.units.quantity import Quantity
 
 log = logging.getLogger(__name__)
 
 ergscm2AA = u.Unit("erg s^-1 cm^-2 AA^-1")
 
 
-def air_to_vac(wavelength):
+def _quantity_to_array(x):
+    if isinstance(x, Quantity):
+        x = np.atleast_1d(x.value)
+    else:
+        x = np.atleast_1d(x)
+    return x
+
+
+def air_to_vac(awav):
     """
     Implements the air to vacuum wavelength conversion described in eqn 65 of
     Griesen 2006
     """
-    wlum = wavelength.to(u.um).value
-    return (
-        1 + 1e-6 * (287.6155 + 1.62887 / wlum**2 + 0.01360 / wlum**4)
-    ) * wavelength
+    try:
+        wlum = awav.to(u.um).value
+    except AttributeError:
+        log.debug(
+            "Unitless value passed to air_to_vac, make sure you "
+            " know what you are doing (units should be microns)."
+        )
+        wlum = awav
+    return (1 + 1e-6 * (287.6155 + 1.62887 / wlum**2 + 0.01360 / wlum**4)) * awav
 
 
-def vac_to_air(wavelength):
+def vac_to_air(wave):
     """
     Griesen 2006 reports that the error in naively inverting Eqn 65 is less
     than 10^-9 and therefore acceptable.  This is therefore eqn 67
     """
-    wlum = wavelength.to(u.um).value
+    try:
+        wlum = wave.to(u.um).value
+    except AttributeError:
+        log.debug(
+            "Unitless value passed to vac_to_air, make sure you "
+            " know what you are doing (units should be microns)."
+        )
+        wlum = wave
+
     nl = 1 + 1e-6 * (287.6155 + 1.62887 / wlum**2 + 0.01360 / wlum**4)
-    return wavelength / nl
+    return wave / nl
 
 
-def v2w(v, w0):
-    v = v * u.km / u.s
-    w0 = w0 * u.AA
-    w = v.to(u.AA, equivalencies=u.doppler_optical(w0))
+def vel_to_wave(vel, w0):
+    try:
+        vel = vel.to(u.km / u.s)
+    except AttributeError:
+        vel = vel * u.km / u.s
+    try:
+        w0 = w0.to(u.AA)
+    except AttributeError:
+        w0 = w0 * u.AA
+
+    w = vel.to(u.AA, equivalencies=u.doppler_optical(w0))
     return w
 
 
-def w2v(w, w0):
+def wave_to_vel(w, w0):
     w = w * u.AA
     w0 = w0 * u.AA
     v = w.to(u.km / u.s, equivalencies=u.doppler_optical(w0))

@@ -69,7 +69,6 @@ def _MC_realization_array(
     N_MC=1000,
     seed=None,
 ):
-
     if all(v is None for v in [errp, errm, lolim, uplim, val_max, val_min]):
         raise ValueError(
             "All inputs are None. You must specify either "
@@ -171,7 +170,6 @@ def _MC_realization_scalar(
     N_MC=1000,
     seed=None,
 ):
-
     if all(v is None for v in [errp, errm, lolim, uplim, val_max, val_min]):
         raise ValueError(
             "All inputs are None. You must specify either "
@@ -234,15 +232,24 @@ def _MC_realization_scalar(
     # If limits, draw uniform
     if uplim and lolim:
         realizations = sample_uniform_between(
-            val_min=val_min, val_max=val_max, nb_draws=N_MC, seed=seed,
+            val_min=val_min,
+            val_max=val_max,
+            nb_draws=N_MC,
+            seed=seed,
         )
     elif uplim and not lolim:
         realizations = sample_uniform_between(
-            val_min=val_min, val_max=data, nb_draws=N_MC, seed=seed,
+            val_min=val_min,
+            val_max=data,
+            nb_draws=N_MC,
+            seed=seed,
         )
     elif not uplim and lolim:
         realizations = sample_uniform_between(
-            val_min=data, val_max=val_max, nb_draws=N_MC, seed=seed,
+            val_min=data,
+            val_max=val_max,
+            nb_draws=N_MC,
+            seed=seed,
         )
     # If no limits draw asymmetric gaussian
     else:
