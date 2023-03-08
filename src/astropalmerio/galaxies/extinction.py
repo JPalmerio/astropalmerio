@@ -163,7 +163,7 @@ def _convert_to_microns(wvlg_AA):
     """
 
     if isinstance(wvlg_AA, Quantity):
-        wvlg = wvlg_AA.to("micron").value
+        wvlg = np.atleast_1d(wvlg_AA.to("micron").value)
     else:
         wvlg = np.atleast_1d(wvlg_AA * 1e-4)
     return wvlg
