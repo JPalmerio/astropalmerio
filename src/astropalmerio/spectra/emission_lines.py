@@ -17,7 +17,7 @@ from astropalmerio.mc.utils import format_to_string
 from astropalmerio.io.fits import read_fits_1D_spectrum, read_fits_2D_spectrum
 from .utils import measure_noise, integrate_flux, gaussian_infinite_integral
 from .visualization import plot_spectrum, plot_continuum, plot_fit
-from .conversions import sigma2FWHM, FWHM_w2v, ergscm2AA
+from .conversions import sigma_to_fwhm, fwhm_w2v, ergscm2AA
 from .reduction import extract_1D_from_2D
 
 log = logging.getLogger(__name__)
@@ -390,9 +390,9 @@ class EmissionLine(object):
 
     def derive_properties_from_fit(self):
         self.properties["obs_awav_fit"] = self.fit["results"]["mean"]
-        self.properties["FWHM_lam"] = sigma2FWHM(self.fit["results"]["stddev"])
-        self.properties["FWHM_vel"] = FWHM_w2v(
-            wvlg=self.properties["FWHM_lam"], w0=self.properties["obs_awav_fit"]
+        self.properties["FWHM_lam"] = sigma_to_fwhm(self.fit["results"]["stddev"])
+        self.properties["FWHM_vel"] = fwhm_w2v(
+            fwhm_w=self.properties["FWHM_lam"], w0=self.properties["obs_awav_fit"]
         )
         self.properties["flux_fit"] = gaussian_infinite_integral(
             amplitude=self.fit["results"]["amplitude"],
@@ -436,7 +436,7 @@ class EmissionLine(object):
             **kwargs,
         )
 
-    def show_fit(self, model_plot_kw={}, spec_plot_kw={}, show_legend=True):
+    def show_fit(self, model_plot_kw={}, spec_plot_kw={}, resid_plot_kw={}, show_legend=True):
         if self.properties["detected"]:
             flux_str = format_to_string(
                 gaussian_infinite_integral(
@@ -450,27 +450,32 @@ class EmissionLine(object):
             )
 
         z = self.fit["results"]["mean"] / self.properties["rest_awav"] - 1
-        FWHM_lam = sigma2FWHM(self.fit["results"]["stddev"])
-        FWHM_vel = FWHM_w2v(wvlg=FWHM_lam, w0=self.fit["results"]["mean"])
+        fwhm_lam = sigma_to_fwhm(self.fit["results"]["stddev"])
+        fwhm_vel = fwhm_w2v(fwhm_w=fwhm_lam, w0=self.fit["results"]["mean"])
 
-        label = (
+        default_label = (
             r"$z=$"
             + f" {z.value:.4f} "
             + "\nFWHM ="
-            + f" {FWHM_lam.value:.1f} "
+            + f" {fwhm_lam.value:.1f} "
             + r"$\rm \AA$"
-            + f" ({FWHM_vel.value:.0f} km/s)"
+            + f" ({fwhm_vel.value:.0f} km/s)"
             + "\nFlux = "
             + flux_str
             + r" $\rm erg/s/cm^{2}$"
         )
+
+        model_plot_kw['label'] = model_plot_kw.pop('label', default_label)
 
         plot_fit(
             wvlg=self.spectrum["wvlg"],
             flux=self.spectrum["flux"],
             error=self.spectrum["error"],
             model=self.fit["flux"],
-            spec_plot_kw={**spec_plot_kw},
-            model_plot_kw={"label": label, **model_plot_kw},
+            residuals=self.fit['residuals'],
+            fit_bounds=self.fit['bounds'],
+            spec_plot_kw=spec_plot_kw,
+            model_plot_kw=model_plot_kw,
+            resid_plot_kw=resid_plot_kw,
             show_legend=show_legend,
         )

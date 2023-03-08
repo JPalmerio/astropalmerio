@@ -1,6 +1,8 @@
 import logging
 import matplotlib.pyplot as plt
 import numpy as np
+from scipy.stats import shapiro
+from .utils import gaussian_fct
 
 log = logging.getLogger(__name__)
 
@@ -49,14 +51,74 @@ def show_flux_integration_bounds(
     return
 
 
-def plot_fit(
-    wvlg, flux, error, model, spec_plot_kw={}, model_plot_kw={}, show_legend=True
+def _plot_residuals(
+    wvlg,
+    residuals,
+    ax,
+    ax_hist=None,
+    resid_hist_kw={},
+    show_unit_gauss=True,
+    show_legend=True,
+    **kwargs,
 ):
-    fig, axes = fig_resid()
+    color = kwargs.pop("color", "k")
+    ax.plot(
+        wvlg,
+        residuals,
+        color=color,
+        drawstyle=kwargs.pop("drawstyle", "steps-mid"),
+        lw=kwargs.pop("lw", 1),
+        **kwargs,
+    )
 
-    ax = axes["center"]
-    ax_res = axes["residuals"]
-    ax_resh = axes["residuals_hist"]
+    if ax_hist is not None:
+        pvalue = shapiro(residuals).pvalue
+        default_label = r"$p_{\rm value}$ = " + f"{pvalue:.3f}"
+
+        ax_hist.hist(
+            residuals,
+            orientation="horizontal",
+            density=True,
+            color=resid_hist_kw.pop("color", color),
+            alpha=resid_hist_kw.pop("alpha", 0.9),
+            bins=resid_hist_kw.pop("bins", np.arange(-5, 5.5, 0.5)),
+            label=resid_hist_kw.pop("label", default_label),
+            **resid_hist_kw,
+        )
+
+        if show_unit_gauss:
+            x = np.linspace(-4, 4, 100)
+            ax_hist.plot(
+                gaussian_fct(x=x, mean=0, stddev=1),
+                x,
+                color=color,
+                lw=1,
+            )
+        if show_legend:
+            ax_hist.legend()
+    return
+
+
+def plot_fit(
+    wvlg,
+    flux,
+    error,
+    model,
+    residuals=None,
+    fit_bounds=None,
+    spec_plot_kw={},
+    model_plot_kw={},
+    resid_plot_kw={},
+    show_legend=True,
+):
+
+    if residuals is not None:
+        fig, axes = fig_resid()
+        ax = axes["center"]
+        ax_res = axes["residuals"]
+        ax_resh = axes["residuals_hist"]
+    else:
+        fig, ax = plt.subplots()
 
     plot_spectrum(wvlg, flux, error, ax=ax, **spec_plot_kw)
     plot_model(wvlg, model, ax=ax, **model_plot_kw)
@@ -68,7 +130,60 @@ def plot_fit(
             2 * np.max(model).value - np.median(model).value,
         )
     )
+
     ax.set_ylim(ymax=ymax)
+
+    if residuals is not None:
+
+        if fit_bounds is None:
+            # plot all residuals with same color as spectrum
+            _plot_residuals(
+                wvlg,
+                residuals=residuals,
+                ax=ax_res,
+                ax_hist=ax_resh,
+                label=None,
+                show_unit_gauss=True,
+                lw=resid_plot_kw.pop('lw', spec_plot_kw.get('lw', 1)),
+                color=resid_plot_kw.pop('color', spec_plot_kw.get('color')),
+                resid_hist_kw=resid_plot_kw.pop("resid_hist_kw", {}),
+                **resid_plot_kw,
+            )
+        else:
+            # Plot all residuals with same color as spectrum
+            # But also overplot region between fit bounds with same color as model
+            # And calculate side histograms associated with this
+            if fit_bounds[0] >= fit_bounds[1]:
+                raise Exception("First element of fit_bounds should be smaller than second element")
+
+            inbounds = np.where((wvlg >= fit_bounds[0]) & (wvlg <= fit_bounds[1]))[0]
+            wvlg_resid = wvlg[inbounds]
+            residuals_fit = residuals[inbounds]
+
+            _plot_residuals(
+                wvlg,
+                residuals=residuals,
+                ax=ax_res,
+                ax_hist=ax_resh,
+                label=None,
+                show_unit_gauss=True,
+                lw=spec_plot_kw.get('lw', 1),
+                color=spec_plot_kw.get('color', 'k'),
+                resid_hist_kw={'label': None},
+                show_legend=False,
+            )
+
+            _plot_residuals(
+                wvlg_resid,
+                residuals=residuals_fit,
+                ax=ax_res,
+                ax_hist=ax_resh,
+                show_unit_gauss=False,
+                color=resid_plot_kw.pop('color', 'C0'),
+                resid_hist_kw=resid_plot_kw.pop("resid_hist_kw", {}),
+                **resid_plot_kw,
+            )
+
     if show_legend:
         ax.legend()
 
@@ -118,28 +233,18 @@ def plot_continuum(wvlg, flux, regions=None, ax=None, **kwargs):
 
 
 def plot_spectrum(wvlg, flux, error=None, ax=None, **kwargs):
-    """Summary
-
-    Parameters
-    ----------
-    ax : None, optional
-        Description
-    color : str, optional
-        Description
-    **kwargs
-        Description
+    """
     """
     if ax is None:
         ax = plt.gca()
 
     color = kwargs.pop("color", "k")
-    lw = kwargs.pop("lw", 1)
     ax.plot(
         wvlg,
         flux,
         drawstyle="steps-mid",
         color=color,
-        lw=lw,
+        lw=kwargs.pop("lw", 1),
         **kwargs,
     )
     if error is not None:
@@ -181,11 +286,17 @@ def show_regions(regions, ax=None, **kwargs):
     return
 
 
-def set_standard_spectral_labels(ax=None):
-    if ax is None:
-        ax = plt.gca()
-    ax.set_ylabel(r"$\rm F_{\lambda}~[erg/s/cm^{2}/\AA$]")
-    ax.set_xlabel(r"Wavelength [$\rm \AA$]")
+def set_standard_spectral_labels(ax_x=None, ax_y=None):
+    if ax_x is None and ax_y is None:
+        ax_x = plt.gca()
+        ax_y = ax_x
+    elif ax_x is None:
+        ax_x = ax_y
+    elif ax_y is None:
+        ax_y = ax_x
+
+    ax_y.set_ylabel(r"$\rm F_{\lambda}~[erg/s/cm^{2}/\AA$]")
+    ax_x.set_xlabel(r"Wavelength [$\rm \AA$]")
     return
 
 
