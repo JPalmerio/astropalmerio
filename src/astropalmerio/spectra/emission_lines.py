@@ -1,3 +1,7 @@
+# -*- coding: utf-8 -*-
+
+__all__ = 'EmissionLine'
+
 import logging
 from pathlib import Path
 import numpy as np

@@ -1,3 +1,17 @@
+# -*- coding: utf-8 -*-
+
+__all__ = [
+    'show_flux_integration_bounds',
+    'plot_fit',
+    'plot_model',
+    'plot_continuum',
+    'plot_spectrum',
+    'show_regions',
+    'set_standard_spectral_labels',
+    'fig_resid',
+
+]
+
 import logging
 import matplotlib.pyplot as plt
 import numpy as np

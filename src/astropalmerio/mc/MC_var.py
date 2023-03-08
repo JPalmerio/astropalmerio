@@ -1,3 +1,9 @@
+# -*- coding: utf-8 -*-
+
+__all__ = [
+    'MC_var',
+]
+
 import logging
 import numpy as np
 from .realizations import MC_realization
@@ -144,7 +150,7 @@ class MC_var(object):
         Returns
         -------
         realizations : array-like
-            The array of the realisations of size N_MC.
+            The array of the realizations of size N_MC.
         """
         if N_MC is None:
             N_MC = self.N_MC

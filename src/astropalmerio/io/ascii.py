@@ -1,3 +1,9 @@
+# -*- coding: utf-8 -*-
+
+__all__ = [
+    'read_nddata',
+]
+
 import logging
 import numpy as np
 

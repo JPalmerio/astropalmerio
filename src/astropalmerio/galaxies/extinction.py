@@ -1,3 +1,15 @@
+# -*- coding: utf-8 -*-
+
+__all__ = [
+    'Cardelli89',
+    'Pei92_MW',
+    'Pei92_SMC',
+    'Calzetti_SB',
+    'get_extinction',
+    'extinguish_line',
+    'correct_line_for_extinction',
+]
+
 import logging
 import numpy as np
 from astropy.units.quantity import Quantity
