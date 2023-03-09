@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 
 __all__ = [
-    'read_fits_1D_spectrum',
-    'read_fits_2D_spectrum',
+    "read_fits_1D_spectrum",
+    "read_fits_2D_spectrum",
 ]
 
 import logging

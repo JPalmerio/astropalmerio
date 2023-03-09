@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 __all__ = [
-    'MC_var',
+    "MC_var",
 ]
 
 import logging

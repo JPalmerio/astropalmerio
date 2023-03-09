@@ -1,11 +1,7 @@
 # -*- coding: utf-8 -*-
 
 
-__all__ = [
-    'star_formation_rate',
-    'Av_from_Balmer_decrement',
-    'H_RATIOS'
-]
+__all__ = ["star_formation_rate", "Av_from_Balmer_decrement", "H_RATIOS"]
 
 import logging
 import numpy as np

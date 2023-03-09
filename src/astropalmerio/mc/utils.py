@@ -1,14 +1,14 @@
 # -*- coding: utf-8 -*-
 
 __all__ = [
-    'format_to_string',
-    'get_errorbars',
-    'quantiles',
-    'binned_CDFs_from_realizations',
-    'unbinned_empirical_cdf',
-    'get_corresponding_y_value',
-    'log_to_lin',
-    'lin_to_log',
+    "format_to_string",
+    "get_errorbars",
+    "quantiles",
+    "binned_CDFs_from_realizations",
+    "unbinned_empirical_cdf",
+    "get_corresponding_y_value",
+    "log_to_lin",
+    "lin_to_log",
 ]
 
 import logging

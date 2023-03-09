@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-__all__ = 'EmissionLine'
+__all__ = "EmissionLine"
 
 import logging
 from pathlib import Path
@@ -440,7 +440,9 @@ class EmissionLine(object):
             **kwargs,
         )
 
-    def show_fit(self, model_plot_kw={}, spec_plot_kw={}, resid_plot_kw={}, show_legend=True):
+    def show_fit(
+        self, model_plot_kw={}, spec_plot_kw={}, resid_plot_kw={}, show_legend=True
+    ):
         if self.properties["detected"]:
             flux_str = format_to_string(
                 gaussian_infinite_integral(
@@ -469,15 +471,15 @@ class EmissionLine(object):
             + r" $\rm erg/s/cm^{2}$"
         )
 
-        model_plot_kw['label'] = model_plot_kw.pop('label', default_label)
+        model_plot_kw["label"] = model_plot_kw.pop("label", default_label)
 
         plot_fit(
             wvlg=self.spectrum["wvlg"],
             flux=self.spectrum["flux"],
             error=self.spectrum["error"],
             model=self.fit["flux"],
-            residuals=self.fit['residuals'],
-            fit_bounds=self.fit['bounds'],
+            residuals=self.fit["residuals"],
+            fit_bounds=self.fit["bounds"],
             spec_plot_kw=spec_plot_kw,
             model_plot_kw=model_plot_kw,
             resid_plot_kw=resid_plot_kw,

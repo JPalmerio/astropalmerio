@@ -1,11 +1,11 @@
 # -*- coding: utf-8 -*-
 
 __all__ = [
-    'anpdf',
-    'ancdf',
-    'flat_pdf',
-    'asym_normal_pdf',
-    'flat_pdf_for_limits',
+    "anpdf",
+    "ancdf",
+    "flat_pdf",
+    "asym_normal_pdf",
+    "flat_pdf_for_limits",
 ]
 
 import logging

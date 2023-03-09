@@ -9,7 +9,7 @@ version:
 lint:
 	@echo 'Linting'
 	python -m black src/
-	python -m pylint src/
+	ruff check src/
 
 test:
 	@echo 'Launching tests'

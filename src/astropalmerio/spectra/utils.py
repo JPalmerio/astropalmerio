@@ -1,12 +1,12 @@
 # -*- coding: utf-8 -*-
 
 __all__ = [
-    'integrate_flux',
-    'measure_noise',
-    'gaussian_fct',
-    'gaussian_infinite_integral',
-    'correct_lambda_for_radial_velocity',
-    'calc_vel_corr',
+    "integrate_flux",
+    "measure_noise",
+    "gaussian_fct",
+    "gaussian_infinite_integral",
+    "correct_lambda_for_radial_velocity",
+    "calc_vel_corr",
 ]
 
 import logging

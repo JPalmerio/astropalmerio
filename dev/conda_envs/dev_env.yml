@@ -17,5 +17,7 @@ dependencies:
   - pip
   - pip:
     - black
+    - ruff
+    - ruff-lsp
     - mplcyberpunk
     - cmasher

@@ -1,15 +1,14 @@
 # -*- coding: utf-8 -*-
 
 __all__ = [
-    'show_flux_integration_bounds',
-    'plot_fit',
-    'plot_model',
-    'plot_continuum',
-    'plot_spectrum',
-    'show_regions',
-    'set_standard_spectral_labels',
-    'fig_resid',
-
+    "show_flux_integration_bounds",
+    "plot_fit",
+    "plot_model",
+    "plot_continuum",
+    "plot_spectrum",
+    "show_regions",
+    "set_standard_spectral_labels",
+    "fig_resid",
 ]
 
 import logging
@@ -158,8 +157,8 @@ def plot_fit(
                 ax_hist=ax_resh,
                 label=None,
                 show_unit_gauss=True,
-                lw=resid_plot_kw.pop('lw', spec_plot_kw.get('lw', 1)),
-                color=resid_plot_kw.pop('color', spec_plot_kw.get('color')),
+                lw=resid_plot_kw.pop("lw", spec_plot_kw.get("lw", 1)),
+                color=resid_plot_kw.pop("color", spec_plot_kw.get("color")),
                 resid_hist_kw=resid_plot_kw.pop("resid_hist_kw", {}),
                 **resid_plot_kw,
             )
@@ -168,7 +167,9 @@ def plot_fit(
             # But also overplot region between fit bounds with same color as model
             # And calculate side histograms associated with this
             if fit_bounds[0] >= fit_bounds[1]:
-                raise Exception("First element of fit_bounds should be smaller than second element")
+                raise Exception(
+                    "First element of fit_bounds should be smaller than second element"
+                )
 
             inbounds = np.where((wvlg >= fit_bounds[0]) & (wvlg <= fit_bounds[1]))[0]
             wvlg_resid = wvlg[inbounds]
@@ -181,9 +182,9 @@ def plot_fit(
                 ax_hist=ax_resh,
                 label=None,
                 show_unit_gauss=True,
-                lw=spec_plot_kw.get('lw', 1),
-                color=spec_plot_kw.get('color', 'k'),
-                resid_hist_kw={'label': None},
+                lw=spec_plot_kw.get("lw", 1),
+                color=spec_plot_kw.get("color", "k"),
+                resid_hist_kw={"label": None},
                 show_legend=False,
             )
 
@@ -193,7 +194,7 @@ def plot_fit(
                 ax=ax_res,
                 ax_hist=ax_resh,
                 show_unit_gauss=False,
-                color=resid_plot_kw.pop('color', 'C0'),
+                color=resid_plot_kw.pop("color", "C0"),
                 resid_hist_kw=resid_plot_kw.pop("resid_hist_kw", {}),
                 **resid_plot_kw,
             )
@@ -247,8 +248,7 @@ def plot_continuum(wvlg, flux, regions=None, ax=None, **kwargs):
 
 
 def plot_spectrum(wvlg, flux, error=None, ax=None, **kwargs):
-    """
-    """
+    """ """
     if ax is None:
         ax = plt.gca()
 

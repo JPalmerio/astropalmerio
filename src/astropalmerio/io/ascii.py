@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 __all__ = [
-    'read_nddata',
+    "read_nddata",
 ]
 
 import logging

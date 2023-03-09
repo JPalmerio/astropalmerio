@@ -1,10 +1,10 @@
 # -*- coding: utf-8 -*-
 
 __all__ = [
-    'bootstrap',
-    'sample_uniform_between',
-    'sample_from_CDF',
-    'sample_asym_norm',
+    "bootstrap",
+    "sample_uniform_between",
+    "sample_from_CDF",
+    "sample_asym_norm",
 ]
 import logging
 import numpy as np

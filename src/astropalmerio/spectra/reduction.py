@@ -1,8 +1,6 @@
 # -*- coding: utf-8 -*-
 
-__all__ = [
-    'extract_1D_from_2D'
-]
+__all__ = ["extract_1D_from_2D"]
 
 import numpy as np
 import logging
