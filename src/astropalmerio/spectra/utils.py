@@ -23,15 +23,15 @@ log = logging.getLogger(__name__)
 
 
 def integrate_flux(
-    wvlg, flux, wvlg_min, wvlg_max, error=None, continuum=None, MC=False, N_MC=1000
+    wvlg, flux, wvlg_min, wvlg_max, uncertainty=None, continuum=None, MC=False, N_MC=1000
 ):
     """
     Calculate the integrated flux over a given wavelength range.
     This can be used to estimated the flux of a line.
     Continuum can be specified and will be subtracted to the
     flux density array.
-    Returns the error on the summed flux if error is provided
-    (assumes the error is the standard deviation).
+    Returns the uncertainty on the summed flux if uncertainty is provided
+    (assumes the uncertainty is the standard deviation).
     """
     imin = wvlg.searchsorted(wvlg_min)
     imax = wvlg.searchsorted(wvlg_max)
@@ -43,27 +43,28 @@ def integrate_flux(
     sub_flux = flux[imin:imax] - continuum[imin:imax]
     flux_summed = np.sum(sub_flux * wvlg_step)
 
-    if error is not None:
-        sub_err = error[imin:imax]
+    if uncertainty is not None:
+        sub_unc = uncertainty[imin:imax]
         if MC:
             sub_flux_real = MC_realization(
-                sample=sub_flux, sample_errp=sub_err, sample_errm=sub_err, N_real=N_MC
+                sample=sub_flux, sample_uncp=sub_unc, sample_uncm=sub_unc, N_real=N_MC
             )
             flux_summed_real = np.sum(sub_flux_real * wvlg_step, axis=1)
             flux_summed = np.quantile(flux_summed_real, 0.5)
-            errm = flux_summed - np.quantile(flux_summed_real, 0.16)
-            errp = np.quantile(flux_summed_real, 0.84) - flux_summed
-            error_summed = (errm, errp)
+            uncm = flux_summed - np.quantile(flux_summed_real, 0.16)
+            uncp = np.quantile(flux_summed_real, 0.84) - flux_summed
+            uncertainty_summed = (uncm, uncp)
         else:
-            error_summed = np.sqrt(np.sum(sub_err**2 * wvlg_step**2))
+            uncertainty_summed = np.sqrt(np.sum(sub_unc**2 * wvlg_step**2))
     else:
         if MC:
             log.warning(
-                "You asked for Monte Carlo errors but err is None. Returning 0."
+                "You asked for Monte Carlo uncertainties but uncertainty is None. "
+                "Returning 0 for the uncertainty."
             )
-        error_summed = 0
+        uncertainty_summed = 0
 
-    return flux_summed, error_summed
+    return flux_summed, uncertainty_summed
 
 
 def measure_noise(wvlg, flux, wvlg_min, wvlg_max):

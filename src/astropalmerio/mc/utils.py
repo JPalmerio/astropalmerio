@@ -19,11 +19,11 @@ log = logging.getLogger(__name__)
 
 def format_to_string(
     value,
-    error=None,
+    uncertainty=None,
     lim_type=None,
     exponent=None,
     value_precision=2,
-    error_precision=2,
+    uncertainty_precision=2,
 ):
     """Summary
 
@@ -31,13 +31,13 @@ def format_to_string(
     ----------
     value : TYPE
         Description
-    error : None, optional
+    uncertainty : None, optional
         Description
     lim_type : None, optional
         Description
     value_precision : int, optional
         Description
-    error_precision : int, optional
+    uncertainty_precision : int, optional
         Description
 
     Returns
@@ -50,18 +50,18 @@ def format_to_string(
     ValueError
         Description
     """
-    if error is not None and lim_type is not None:
+    if uncertainty is not None and lim_type is not None:
         log.warning(
-            "Both error and limits are not None, "
+            "Both uncertainty and limits are not None, "
             "make sure you know what you are doing."
         )
 
     if isinstance(exponent, int):
         value = value / 10 ** int(exponent)
-        if isinstance(error, (float, int)):
-            error = float(error) / 10 ** int(exponent)
-        elif isinstance(error, (list, np.ndarray)):
-            error = np.array(error).astype(float) / 10 ** int(exponent)
+        if isinstance(uncertainty, (float, int)):
+            uncertainty = float(uncertainty) / 10 ** int(exponent)
+        elif isinstance(uncertainty, (list, np.ndarray)):
+            uncertainty = np.array(uncertainty).astype(float) / 10 ** int(exponent)
 
     val_str, exponent = f"{value:.{value_precision:d}e}".split("e")
 
@@ -73,26 +73,26 @@ def format_to_string(
         exponent_str = rf" \times 10^{{{int(exponent):d}}}"
 
     # Error
-    if error is None:
-        err_str = ""
-    elif isinstance(error, (float, int)):
-        error = float(error)
+    if uncertainty is None:
+        unc_str = ""
+    elif isinstance(uncertainty, (float, int)):
+        uncertainty = float(uncertainty)
         # Don't print exponent if its only 0.1, 1, or 10
         if int(exponent) in [-1, 0, 1]:
-            error = error * 10 ** int(exponent)
-        errp = f"{error/10**int(exponent):.{error_precision:d}f}"
-        errm = errp
-        err_str = rf"^{{+{errp}}}_{{-{errm}}}"
-    elif isinstance(error, (list, np.ndarray)):
-        error = np.array(error).astype(float)
+            uncertainty = uncertainty * 10 ** int(exponent)
+        uncp = f"{uncertainty/10**int(exponent):.{uncertainty_precision:d}f}"
+        uncm = uncp
+        unc_str = rf"^{{+{uncp}}}_{{-{uncm}}}"
+    elif isinstance(uncertainty, (list, np.ndarray)):
+        uncertainty = np.array(uncertainty).astype(float)
         # Don't print exponent if its only 0.1, 1, or 10
         if int(exponent) in [-1, 0, 1]:
-            error = error * 10 ** int(exponent)
-        errm = f"{error[0]/10**int(exponent):.{error_precision:d}f}"
-        errp = f"{error[1]/10**int(exponent):.{error_precision:d}f}"
-        err_str = f"^{{+{errp}}}_{{-{errm}}}"
+            uncertainty = uncertainty * 10 ** int(exponent)
+        uncm = f"{uncertainty[0]/10**int(exponent):.{uncertainty_precision:d}f}"
+        uncp = f"{uncertainty[1]/10**int(exponent):.{uncertainty_precision:d}f}"
+        unc_str = f"^{{+{uncp}}}_{{-{uncm}}}"
     else:
-        raise ValueError("Invalid input for error")
+        raise ValueError("Invalid input for uncertainty")
 
     # Limit
     if lim_type is None:
@@ -104,7 +104,7 @@ def format_to_string(
     else:
         raise ValueError("Invalid input for lim_type")
 
-    formatted_string = rf"${lim_str}{val_str}{err_str}{exponent_str}$"
+    formatted_string = rf"${lim_str}{val_str}{unc_str}{exponent_str}$"
 
     return formatted_string
 
@@ -132,9 +132,9 @@ def get_errorbars(data, confidence=0.68, axis=0):
         Description
     """
     value, low, upp = quantiles(data, confidence=confidence, axis=axis)
-    errm = value - low
-    errp = upp - value
-    return value, errm, errp
+    uncm = value - low
+    uncp = upp - value
+    return value, uncm, uncp
 
 
 def quantiles(array, confidence=0.68, axis=0):
@@ -263,45 +263,45 @@ def get_corresponding_y_value(x_val, x, y):
     return y_val
 
 
-def log_to_lin(log_x, log_x_errp, log_x_errm=None):
+def log_to_lin(log_x, log_x_uncp, log_x_uncm=None):
     """
-    Takes logscale data with errors and converts to linear scale with correct error propagation.
-    If log_x_errm is not provided, errors are assumed symmetric.
-    Returns : x, x_errp, x_errm
+    Takes logscale data with uncertainties and converts to linear scale with correct uncertainty propagation.
+    If log_x_uncm is not provided, uncertainties are assumed symmetric.
+    Returns : x, x_uncp, x_uncm
 
     Parameters
     ----------
     log_x : int, float, array-like
         The logarithmic value or array to convert to linear.
-    log_x_errp : int, float, array-like
-        The positive error in logscale.
-    log_x_errm : int, float, array-like, optional
-        The negative error in logscale.
+    log_x_uncp : int, float, array-like
+        The positive uncertainty in logscale.
+    log_x_uncm : int, float, array-like, optional
+        The negative uncertainty in logscale.
 
     Returns
     -------
     TYPE
-        x, x_errp, x_errm
+        x, x_uncp, x_uncm
     """
-    if log_x_errm is None:
-        log_x_errm = log_x_errp
+    if log_x_uncm is None:
+        log_x_uncm = log_x_uncp
     x = 10**log_x
-    x_errp = x * (10**log_x_errp - 1.0)
-    x_errm = x * (1.0 - 10 ** (-log_x_errm))
+    x_uncp = x * (10**log_x_uncp - 1.0)
+    x_uncm = x * (1.0 - 10 ** (-log_x_uncm))
 
-    return x, x_errp, x_errm
+    return x, x_uncp, x_uncm
 
 
-def lin_to_log(x, x_errp, x_errm=None):
+def lin_to_log(x, x_uncp, x_uncm=None):
     """
-    Takes linear data with errors and converts to logscale with correct error propagation.
-    If x_errm is not provided, errors are assumed symmetric.
-    Returns : log_x, log_x_errp, log_x_errm
+    Takes linear data with uncertainties and converts to logscale with correct uncertainty propagation.
+    If x_uncm is not provided, uncertainties are assumed symmetric.
+    Returns : log_x, log_x_uncp, log_x_uncm
     """
-    if x_errm is None:
-        x_errm = x_errp
+    if x_uncm is None:
+        x_uncm = x_uncp
     log_x = np.log10(x)
-    log_x_errp = np.log10((x + x_errp) / x)
-    log_x_errm = np.log10(x / (x - x_errm))
+    log_x_uncp = np.log10((x + x_uncp) / x)
+    log_x_uncm = np.log10(x / (x - x_uncm))
 
-    return log_x, log_x_errp, log_x_errm
+    return log_x, log_x_uncp, log_x_uncm

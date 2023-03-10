@@ -8,7 +8,7 @@ import logging
 log = logging.getLogger(__name__)
 
 
-def extract_1D_from_2D(wvlg, spatial, flux, spatial_bounds, error=None):
+def extract_1D_from_2D(wvlg, spatial, flux, spatial_bounds, uncertainty=None):
     """Summary
 
     Parameters
@@ -23,13 +23,13 @@ def extract_1D_from_2D(wvlg, spatial, flux, spatial_bounds, error=None):
         dimension and second dimension the spectral one.
     spatial_bounds : tuple (float, float)
         Lower and upper bound of the spatial extraction.
-    error : 2D array-like, optional, Default None
-        2D error spectrum. If None, will return 0 for the extracted error
+    uncertainty : 2D array-like, optional, Default None
+        2D uncertainty spectrum. If None, will return 0 for the extracted uncertainty
 
     Returns
     -------
-    wvlg, extracted_flux, extracted_error : 3-tuple of array-like of size len(flux).
-        Tuple of the spectral dimension, extracted flux and error.
+    wvlg, extracted_flux, extracted_unc : 3-tuple of array-like of size len(flux).
+        Tuple of the spectral dimension, extracted flux and uncertainty.
     """
 
     # Finds the index corresponding to the min and max spatial positions
@@ -46,17 +46,17 @@ def extract_1D_from_2D(wvlg, spatial, flux, spatial_bounds, error=None):
     for i in range(index_max - index_min):
         extracted_flux += flux[index_min + i]
 
-    # Same for error
-    if error is None:
-        extracted_error = np.zeros(flux.shape[1])
+    # Same for uncertainty
+    if uncertainty is None:
+        extracted_unc = np.zeros(flux.shape[1])
     else:
-        extracted_error = np.zeros(error.shape[1])
+        extracted_unc = np.zeros(uncertainty.shape[1])
         for i in range(index_max - index_min):
-            extracted_error += (
-                error[index_min + i] ** 2
+            extracted_unc += (
+                uncertainty[index_min + i] ** 2
             )  # quadratic sum for error propagation
-        extracted_error = np.sqrt(
-            extracted_error
+        extracted_unc = np.sqrt(
+            extracted_unc
         )  # quadratic sum for error propagation
 
-    return wvlg, extracted_flux, extracted_error
+    return wvlg, extracted_flux, extracted_unc

@@ -89,13 +89,13 @@ class EmissionLine(object):
             fname = Path(fname)
 
         if fname.suffix == ".fits":
-            wvlg, flux, error = read_fits_1D_spectrum(fname)
+            wvlg, flux, unc = read_fits_1D_spectrum(fname)
 
         elif fname.suffix in [".txt", ".dat"]:
             df = pd.read_csv(fname, **args)
             wvlg = df["wave"].to_numpy()
             flux = df["flux"].to_numpy()
-            error = df["error"].to_numpy()
+            unc = df["unc"].to_numpy()
         else:
             raise ValueError(
                 "Cannot read this type of file. It must be "
@@ -105,7 +105,7 @@ class EmissionLine(object):
         spectrum = Spectrum1D(
             spectral_axis=wvlg * u.AA,
             flux=flux * ergscm2AA,
-            uncertainty=StdDevUncertainty(error),
+            uncertainty=StdDevUncertainty(unc),
         )
 
         self.spectrum["1D"] = {
@@ -132,16 +132,16 @@ class EmissionLine(object):
                 "Cannot read this type of file. It must be " "a '.fits' file."
             )
 
-        wvlg, spatial, flux_2D, error_2D = read_fits_2D_spectrum(fname)
+        wvlg, spatial, flux_2D, unc_2D = read_fits_2D_spectrum(fname)
 
-        wvlg, flux, error = extract_1D_from_2D(
-            wvlg, spatial, spatial_bounds=spatial_bounds, flux=flux_2D, error=error_2D
+        wvlg, flux, unc = extract_1D_from_2D(
+            wvlg, spatial, spatial_bounds=spatial_bounds, flux=flux_2D, unc=unc_2D
         )
 
         spectrum = Spectrum1D(
             spectral_axis=wvlg * u.AA,
             flux=flux * ergscm2AA,
-            uncertainty=StdDevUncertainty(error),
+            uncertainty=StdDevUncertainty(unc),
         )
 
         self.spectrum["2D"] = {
@@ -149,7 +149,7 @@ class EmissionLine(object):
             "wave": wvlg * u.AA,
             "spatial": spatial * u.arcsec,
             "flux": flux * ergscm2AA,
-            "error": error * ergscm2AA,
+            "unc": unc * ergscm2AA,
         }
 
         self.spectrum["1D"] = {
@@ -204,11 +204,12 @@ class EmissionLine(object):
         self.spectrum["flux"] = spectrum.flux[imin:imax]
 
         if spectrum.uncertainty is not None:
-            self.spectrum["error"] = spectrum.uncertainty.quantity[imin:imax]
+            self.spectrum["unc"] = spectrum.uncertainty.quantity[imin:imax]
         else:
             log.warning(
-                "No error spectrum, determining average noise from spectrum "
-                "and using that value throughout the spectrum... "
+                "No uncertainty spectrum, determining average noise from spectrum "
+                "and using that value throughout the spectrum. Note: this is very crude"
+                " and probably an overestimation... "
                 "You should really be providing uncertainties with your measurements!"
             )
             mean, noise, snr = measure_noise(
@@ -217,7 +218,9 @@ class EmissionLine(object):
                 wvlg_min=self.spectrum["wvlg"].min(),
                 wvlg_max=self.spectrum["wvlg"].max(),
             )
-            self.spectrum["error"] = noise * np.ones(len(self.spectrum["flux"]))
+            log.warning(f"Estimated noise from spectrum: {noise}")
+
+            self.spectrum["unc"] = noise * np.ones(len(self.spectrum["flux"]))
 
         return self.spectrum
 
@@ -265,7 +268,7 @@ class EmissionLine(object):
             spectrum=Spectrum1D(
                 spectral_axis=self.spectrum["wvlg"],
                 flux=self.spectrum["flux"],
-                uncertainty=StdDevUncertainty(self.spectrum["error"]),
+                uncertainty=StdDevUncertainty(self.spectrum["unc"]),
             ),
             window=regions,
             **args,
@@ -292,10 +295,10 @@ class EmissionLine(object):
 
         wmin, wmax = self._get_bounds(bounds, default=default_bounds)
 
-        flux, error = integrate_flux(
+        flux, uncertainty = integrate_flux(
             wvlg=self.spectrum["wvlg"],
             flux=self.spectrum["flux"],
-            error=self.spectrum["error"],
+            unc=self.spectrum["unc"],
             wvlg_min=wmin,
             wvlg_max=wmax,
             continuum=continuum,
@@ -303,9 +306,9 @@ class EmissionLine(object):
 
         self.properties["flux_int_bounds"] = (wmin, wmax)
         self.properties["flux_int"] = flux
-        self.properties["flux_int_err"] = error
+        self.properties["flux_int_unc"] = uncertainty
 
-        return flux, error
+        return flux, uncertainty
 
     def fit_single_gaussian(self, bounds=None, **args):
         """Summary
@@ -341,7 +344,7 @@ class EmissionLine(object):
             spectrum=Spectrum1D(
                 spectral_axis=self.spectrum["wvlg"],
                 flux=self.spectrum["flux"] - self.fit["continuum"]["flux"],
-                uncertainty=StdDevUncertainty(self.spectrum["error"]),
+                uncertainty=StdDevUncertainty(self.spectrum["unc"]),
             ),
             model=g_init,
             get_fit_info=True,
@@ -363,7 +366,7 @@ class EmissionLine(object):
 
         self.fit["residuals"] = (
             self.spectrum["flux"] - self.fit["flux"]
-        ) / self.spectrum["error"]
+        ) / self.spectrum["unc"]
 
     def derive_upper_limit(self, line_center, line_width, bounds=None):
         try:
@@ -411,7 +414,7 @@ class EmissionLine(object):
         plot_spectrum(
             wvlg=self.spectrum["wvlg"],
             flux=self.spectrum["flux"],
-            error=self.spectrum["error"],
+            uncertainty=self.spectrum["unc"],
             ax=ax,
             **kwargs,
         )
@@ -476,7 +479,7 @@ class EmissionLine(object):
         plot_fit(
             wvlg=self.spectrum["wvlg"],
             flux=self.spectrum["flux"],
-            error=self.spectrum["error"],
+            uncertainty=self.spectrum["unc"],
             model=self.fit["flux"],
             residuals=self.fit["residuals"],
             fit_bounds=self.fit["bounds"],

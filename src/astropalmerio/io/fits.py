@@ -18,7 +18,7 @@ log = logging.getLogger(__name__)
 def read_fits_1D_spectrum(filename):
     """
     A function to read data from a 1D spectrum fits file.
-    Returns wavelength in angstroms, flux and errors in erg/s/cm2/A .
+    Returns wavelength in angstroms, flux and uncertainties in erg/s/cm2/A .
     """
     if isinstance(filename, Path):
         filename = str(filename)
@@ -31,12 +31,12 @@ def read_fits_1D_spectrum(filename):
         cols = [c.lower() for c in data.columns]
         wvlg_key = [c for c in cols if "wave" in c or "wvlg" in c][0]
         flux_key = [c for c in cols if "flux" in c][0]
-        error_key = [c for c in cols if "err" in c][0]
+        uncertainty_key = [c for c in cols if "err" in c][0]
         wvlg = np.array(data[wvlg_key])
         flux = np.array(data[flux_key])
-        error = np.array(data[error_key])
+        uncertainty = np.array(data[uncertainty_key])
 
-        return wvlg, flux, error
+        return wvlg, flux, uncertainty
 
     except ValueError:
         log.debug("No BinTableHDU found, trying different method")
@@ -63,14 +63,14 @@ def read_fits_1D_spectrum(filename):
                 f"Could not understand FITS file format for {filename}."
             ) from e
 
-    # Look for errors as well
+    # Look for uncertainties as well
     try:
-        err_index = hdu_list.index_of("ERRS")
-        error = fits.getdata(filename, ext=err_index)
+        unc_index = hdu_list.index_of("ERRS")
+        uncertainty = fits.getdata(filename, ext=unc_index)
         log.debug("Found ERRS extension")
     except KeyError:
-        log.warning("No ERRS extension found; setting errors to 0")
-        error = 0.0 * flux
+        log.warning("No ERRS extension found; setting uncertainties to 0")
+        uncertainty = 0.0 * flux
 
     # Check for wavelength units
     try:
@@ -89,13 +89,13 @@ def read_fits_1D_spectrum(filename):
     )  # Make sure units are Angstrom
     wvlg = np.array([wvlg_init + i * wvlg_step for i in range(flux.shape[0])])
 
-    return wvlg, flux, error
+    return wvlg, flux, uncertainty
 
 
 def read_fits_2D_spectrum(filename, verbose=False):
     """
     A function to read data from a 2D spectrum.
-    Returns wavelength in angstroms, spatial position in arcsec, flux and errors in erg/s/cm2/A.
+    Returns wavelength in angstroms, spatial position in arcsec, flux and uncertainties in erg/s/cm2/A.
     """
 
     hdu_list = fits.open(filename)
@@ -112,13 +112,13 @@ def read_fits_2D_spectrum(filename, verbose=False):
 
     try:
         # Look for an extension name that contains the letters 'err'
-        err_hdu_name = [n for n in hdu_names if "err" in n.lower()][0]
-        log.info(f"Found error extension named: {err_hdu_name}")
-        err_index = hdu_list.index_of(err_hdu_name)
-        error = fits.getdata(filename, ext=err_index)
+        unc_hdu_name = [n for n in hdu_names if "err" in n.lower()][0]
+        log.info(f"Found uncertainty extension named: {unc_hdu_name}")
+        unc_index = hdu_list.index_of(unc_hdu_name)
+        uncertainty = fits.getdata(filename, ext=unc_index)
     except IndexError:
-        log.warning("No error extension found in file %s", filename)
-        error = np.zeros(data.shape)
+        log.warning("No uncertainty extension found in file %s", filename)
+        uncertainty = np.zeros(data.shape)
 
     hdr = hdu_list[data_index].header
     if verbose:
@@ -149,4 +149,4 @@ def read_fits_2D_spectrum(filename, verbose=False):
     spatial_step = hdr["CDELT2"]
     spatial = np.array([spatial_init + i * spatial_step for i in range(data.shape[0])])
 
-    return wvlg, spatial, data, error
+    return wvlg, spatial, data, uncertainty

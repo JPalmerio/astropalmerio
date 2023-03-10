@@ -14,8 +14,8 @@ log = logging.getLogger(__name__)
 
 def MC_realization(
     data,
-    errp=None,
-    errm=None,
+    uncp=None,
+    uncm=None,
     lolim=None,
     uplim=None,
     val_max=None,
@@ -24,19 +24,23 @@ def MC_realization(
     seed=None,
 ):
     """
-    Function to create a realization of a sample with errors and upper limits.
-    This assumes the value's PDF's can be represented by asymmetric gaussians whose sigmas are the plus and minus error.
-    For limits, assumes a flat prior (uniform draw) between the limit and the array specified by val_max/val_min.
-    val_max and val_min can also be used to specify (in the case of non-limits) the allowed domain.
-    This can be used to avoid unphysical values, for instance if you are creating realizations for a distance,
+    Function to create a realization of a sample with uncertainties and upper limits.
+    This assumes the value's PDF's can be represented by asymmetric gaussians whose
+    sigmas are the plus and minus uncertainty.
+    For limits, assumes a flat prior (uniform draw) between the limit and the array
+    specified by val_max/val_min.
+    val_max and val_min can also be used to specify (in the case of non-limits) the
+    allowed domain.
+    This can be used to avoid unphysical values, for instance if you are creating
+    realizations for a distance,
     which cannot be negative, you can provide val_min=np.zeros(len(data))
 
     """
     if isinstance(data, (int, float)):
         realizations = _MC_realization_scalar(
             data=data,
-            errp=errp,
-            errm=errm,
+            uncp=uncp,
+            uncm=uncm,
             lolim=lolim,
             uplim=uplim,
             val_max=val_max,
@@ -47,8 +51,8 @@ def MC_realization(
     elif isinstance(data, (np.ndarray, list)):
         realizations = _MC_realization_array(
             data=data,
-            errp=errp,
-            errm=errm,
+            uncp=uncp,
+            uncm=uncm,
             lolim=lolim,
             uplim=uplim,
             val_max=val_max,
@@ -64,8 +68,8 @@ def MC_realization(
 
 def _MC_realization_array(
     data,
-    errp=None,
-    errm=None,
+    uncp=None,
+    uncm=None,
     lolim=None,
     uplim=None,
     val_max=None,
@@ -73,21 +77,21 @@ def _MC_realization_array(
     N_MC=1000,
     seed=None,
 ):
-    if all(v is None for v in [errp, errm, lolim, uplim, val_max, val_min]):
+    if all(v is None for v in [uncp, uncm, lolim, uplim, val_max, val_min]):
         raise ValueError(
             "All inputs are None. You must specify either "
-            "an error with errp/errm or a upper/lower limit "
+            "an uncertainty with uncp/uncm or a upper/lower limit "
             "with uplim/lolim."
         )
 
     N_data = len(data)
 
-    if (errp is None) and (errm is None):
-        errp = np.array([None for i in range(N_data)])
-        errm = np.array([None for i in range(N_data)])
-    # If positive but no negative error is specified assume errors are symetric
-    if (errm is None) and (errp is not None):
-        errm = errp
+    if (uncp is None) and (uncm is None):
+        uncp = np.array([None for i in range(N_data)])
+        uncm = np.array([None for i in range(N_data)])
+    # If positive but no negative uncertainty is specified assume uncertainties are symetric
+    if (uncm is None) and (uncp is not None):
+        uncm = uncp
 
     # Check for limits
     # Lower-limits
@@ -110,7 +114,7 @@ def _MC_realization_array(
         val_max = val_max * np.ones(N_data)
 
     # Check if inputs are ok
-    for var in [errp, errm, uplim, lolim, val_max, val_min]:
+    for var in [uncp, uncm, uplim, lolim, val_max, val_min]:
         if not isinstance(var, (np.ndarray, list)):
             raise ValueError("All inputs must be list or numpy array")
         if len(var) != N_data:
@@ -120,28 +124,28 @@ def _MC_realization_array(
     realizations = np.zeros((N_MC, N_data))
     for i in range(N_data):
         if lolim[i] and (val_max[i] is None):
-            val_max[i] = data.max() + 5 * errp.max()
+            val_max[i] = data.max() + 5 * uncp.max()
             log.warning(
                 f"You have a lower limit at i={i} but did not specify what "
                 "the maximum value should be for uniform drawings. "
                 "I will use the maximum value of your data plus "
-                f"5 times the maximum plus error : {val_max[i]:.3e}"
+                f"5 times the maximum plus uncertainty : {val_max[i]:.3e}"
             )
         if uplim[i] and (val_min[i] is None):
-            val_min[i] = data.min() - 5 * errm.max()
+            val_min[i] = data.min() - 5 * uncm.max()
             log.warning(
                 f"You have an upper limit at i={i} but did not specify what "
                 "the minimum value should be for uniform drawings. "
                 "I will use the minimum value of your data minus "
-                f"5 times the maximum minus error : {val_min[i]:.3e}"
+                f"5 times the maximum minus uncertainty : {val_min[i]:.3e}"
             )
 
         log.debug(
             "Passing the following to scalar MC sampling:\n"
             f"{i=}\n"
             f"{data[i]=}\n"
-            f"{errp[i]=}\n"
-            f"{errm[i]=}\n"
+            f"{uncp[i]=}\n"
+            f"{uncm[i]=}\n"
             f"{lolim[i]=}\n"
             f"{uplim[i]=}\n"
             f"{val_min[i]=}\n"
@@ -150,8 +154,8 @@ def _MC_realization_array(
         )
         realizations[:, i] = _MC_realization_scalar(
             data=data[i],
-            errp=errp[i],
-            errm=errm[i],
+            uncp=uncp[i],
+            uncm=uncm[i],
             lolim=lolim[i],
             uplim=uplim[i],
             val_max=val_max[i],
@@ -165,8 +169,8 @@ def _MC_realization_array(
 
 def _MC_realization_scalar(
     data,
-    errp=None,
-    errm=None,
+    uncp=None,
+    uncm=None,
     lolim=None,
     uplim=None,
     val_max=None,
@@ -174,16 +178,16 @@ def _MC_realization_scalar(
     N_MC=1000,
     seed=None,
 ):
-    if all(v is None for v in [errp, errm, lolim, uplim, val_max, val_min]):
+    if all(v is None for v in [uncp, uncm, lolim, uplim, val_max, val_min]):
         raise ValueError(
             "All inputs are None. You must specify either "
-            "an error with errp/errm or a upper/lower limit "
+            "an uncertainty with uncp/uncm or a upper/lower limit "
             "with uplim/lolim."
         )
 
-    # If no negative error is specified, assume errors are symetric
-    if errm is None:
-        errm = errp
+    # If no negative uncertainty is specified, assume uncertainties are symetric
+    if uncm is None:
+        uncm = uncp
 
     if lolim is None:
         lolim = False
@@ -209,7 +213,7 @@ def _MC_realization_scalar(
         )
 
     # Check if inputs are ok
-    for var in [errp, errm, val_max, val_min]:
+    for var in [uncp, uncm, val_max, val_min]:
         if (var is not None) and not isinstance(var, (float, int)):
             raise ValueError("Errors and max/min values must be float or int")
     for var in [uplim, lolim]:
@@ -221,8 +225,8 @@ def _MC_realization_scalar(
     log.debug(
         "About to attempt sampling for following inputs:\n"
         f"{data=}\n"
-        f"{errp=}\n"
-        f"{errm=}\n"
+        f"{uncp=}\n"
+        f"{uncm=}\n"
         f"{lolim=}\n"
         f"{uplim=}\n"
         f"{val_min=}\n"
@@ -257,17 +261,18 @@ def _MC_realization_scalar(
         )
     # If no limits draw asymmetric gaussian
     else:
-        # If symmetric error and no bounding values, simply draw from numpy gaussian
-        if (errm == errp) and (val_min is None) and (val_max is None):
+        # If symmetric uncertainty and no bounding values
+        # simply draw from numpy gaussian
+        if (uncm == uncp) and (val_min is None) and (val_max is None):
             # Fix seed for reproducibility
             if seed is not None:
                 rng.bit_generator.state = PCG64(seed).state
-            realizations = rng.normal(loc=data, scale=errp, size=N_MC)
+            realizations = rng.normal(loc=data, scale=uncp, size=N_MC)
         else:
             realizations = sample_asym_norm(
                 data,
-                sigma1=errm,
-                sigma2=errp,
+                sigma1=uncm,
+                sigma2=uncp,
                 nb_draws=N_MC,
                 val_min=val_min,
                 val_max=val_max,

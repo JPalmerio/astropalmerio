@@ -26,7 +26,7 @@ def show_flux_integration_bounds(
     wvlg_min,
     wvlg_max,
     line_flux,
-    line_err,
+    line_unc,
     continuum=0,
     ax1D=None,
     ax2D=None,
@@ -56,7 +56,7 @@ def show_flux_integration_bounds(
         label=r"$\rm Flux =$"
         + f" {line_flux:.1e} "
         + r"$\pm$"
-        + f" {line_err:.1e} "
+        + f" {line_unc:.1e} "
         + r"$\rm erg/s/cm^{{2}}$",
         facecolor=facecolor,
         hatch="|",
@@ -115,7 +115,7 @@ def _plot_residuals(
 def plot_fit(
     wvlg,
     flux,
-    error,
+    uncertainty,
     model,
     residuals=None,
     fit_bounds=None,
@@ -133,7 +133,7 @@ def plot_fit(
     else:
         fig, ax = plt.subplots()
 
-    plot_spectrum(wvlg, flux, error, ax=ax, **spec_plot_kw)
+    plot_spectrum(wvlg, flux, uncertainty=uncertainty, ax=ax, **spec_plot_kw)
     plot_model(wvlg, model, ax=ax, **model_plot_kw)
 
     # Adjust y height of plot
@@ -247,7 +247,7 @@ def plot_continuum(wvlg, flux, regions=None, ax=None, **kwargs):
         )
 
 
-def plot_spectrum(wvlg, flux, error=None, ax=None, **kwargs):
+def plot_spectrum(wvlg, flux, uncertainty=None, ax=None, **kwargs):
     """ """
     if ax is None:
         ax = plt.gca()
@@ -261,10 +261,10 @@ def plot_spectrum(wvlg, flux, error=None, ax=None, **kwargs):
         lw=kwargs.pop("lw", 1),
         **kwargs,
     )
-    if error is not None:
+    if uncertainty is not None:
         ax.fill_between(
             wvlg.value,
-            error.value,
+            uncertainty.value,
             color=color,
             alpha=kwargs.pop("alpha", 0.2),
             step="mid",

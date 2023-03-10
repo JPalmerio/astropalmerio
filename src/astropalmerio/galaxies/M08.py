@@ -472,16 +472,16 @@ def R23_scatter_rec(Z):
 
     # all of these are in log scale
     Z_to_plot = read_column(Maio_file, 0)
-    R23_err = read_column(Maio_file, 8)
+    R23_unc = read_column(Maio_file, 8)
 
     if isinstance(Z, np.ndarray):
         scatter = np.zeros(len(Z))
         for i in range(len(Z)):
             j = Z_to_plot.searchsorted(Z[i])
-            scatter[i] = R23_err[j]
+            scatter[i] = R23_unc[j]
     else:
         j = Z_to_plot.searchsorted(Z)
-        scatter = R23_err[j]
+        scatter = R23_unc[j]
     return scatter
 
 
@@ -501,16 +501,16 @@ def OIIIb_Hbeta_scatter_rec(Z):
 
     # all of these are in log scale
     Z_to_plot = read_column(Maio_file, 0)
-    OIIIb_Hb_err = read_column(Maio_file, 4)
+    OIIIb_Hb_unc = read_column(Maio_file, 4)
 
     if isinstance(Z, np.ndarray):
         scatter = np.zeros(len(Z))
         for i in range(len(Z)):
             j = Z_to_plot.searchsorted(Z[i])
-            scatter[i] = OIIIb_Hb_err[j]
+            scatter[i] = OIIIb_Hb_unc[j]
     else:
         j = Z_to_plot.searchsorted(Z)
-        scatter = OIIIb_Hb_err[j]
+        scatter = OIIIb_Hb_unc[j]
     return scatter
 
 
@@ -530,16 +530,16 @@ def OII_Hbeta_scatter_rec(Z):
 
     # all of these are in log scale
     Z_to_plot = read_column(Maio_file, 0)
-    OII_Hb_err = read_column(Maio_file, 2)
+    OII_Hb_unc = read_column(Maio_file, 2)
 
     if isinstance(Z, np.ndarray):
         scatter = np.zeros(len(Z))
         for i in range(len(Z)):
             j = Z_to_plot.searchsorted(Z[i])
-            scatter[i] = OII_Hb_err[j]
+            scatter[i] = OII_Hb_unc[j]
     else:
         j = Z_to_plot.searchsorted(Z)
-        scatter = OII_Hb_err[j]
+        scatter = OII_Hb_unc[j]
     return scatter
 
 
@@ -559,16 +559,16 @@ def OIIIb_OII_scatter_rec(Z):
 
     # all of these are in log scale
     Z_to_plot = read_column(Maio_file, 0)
-    OIIIb_OII_err = read_column(Maio_file, 6)
+    OIIIb_OII_unc = read_column(Maio_file, 6)
 
     if isinstance(Z, np.ndarray):
         scatter = np.zeros(len(Z))
         for i in range(len(Z)):
             j = Z_to_plot.searchsorted(Z[i])
-            scatter[i] = OIIIb_OII_err[j]
+            scatter[i] = OIIIb_OII_unc[j]
     else:
         j = Z_to_plot.searchsorted(Z)
-        scatter = OIIIb_OII_err[j]
+        scatter = OIIIb_OII_unc[j]
     return scatter
 
 
@@ -588,16 +588,16 @@ def NeIII_OII_scatter_rec(Z):
 
     # all of these are in log scale
     Z_to_plot = read_column(Maio_file, 0)
-    NeIII_OII_err = read_column(Maio_file, 10)
+    NeIII_OII_unc = read_column(Maio_file, 10)
 
     if isinstance(Z, np.ndarray):
         scatter = np.zeros(len(Z))
         for i in range(len(Z)):
             j = Z_to_plot.searchsorted(Z[i])
-            scatter[i] = NeIII_OII_err[j]
+            scatter[i] = NeIII_OII_unc[j]
     else:
         j = Z_to_plot.searchsorted(Z)
-        scatter = NeIII_OII_err[j]
+        scatter = NeIII_OII_unc[j]
     return scatter
 
 
@@ -617,16 +617,16 @@ def NII_Halpha_scatter_rec(Z):
 
     # all of these are in log scale
     Z_to_plot = read_column(Maio_file, 0)
-    NII_Ha_err = read_column(Maio_file, 12)
+    NII_Ha_unc = read_column(Maio_file, 12)
 
     if isinstance(Z, np.ndarray):
         scatter = np.zeros(len(Z))
         for i in range(len(Z)):
             j = Z_to_plot.searchsorted(Z[i])
-            scatter[i] = NII_Ha_err[j]
+            scatter[i] = NII_Ha_unc[j]
     else:
         j = Z_to_plot.searchsorted(Z)
-        scatter = NII_Ha_err[j]
+        scatter = NII_Ha_unc[j]
     return scatter
 
 
@@ -646,16 +646,16 @@ def OIIIb_NII_scatter_rec(Z):
 
     # all of these are in log scale
     Z_to_plot = read_column(Maio_file, 0)
-    OIIIb_NII_err = read_column(Maio_file, 14)
+    OIIIb_NII_unc = read_column(Maio_file, 14)
 
     if isinstance(Z, np.ndarray):
         scatter = np.zeros(len(Z))
         for i in range(len(Z)):
             j = Z_to_plot.searchsorted(Z[i])
-            scatter[i] = OIIIb_NII_err[j]
+            scatter[i] = OIIIb_NII_unc[j]
     else:
         j = Z_to_plot.searchsorted(Z)
-        scatter = OIIIb_NII_err[j]
+        scatter = OIIIb_NII_unc[j]
     return scatter
 
 
@@ -691,19 +691,19 @@ def plot_relations(ratio_list=None, ax=None):
 
     Z_to_plot = read_column(Maio_file, 0)
     OII_Hb = read_column(Maio_file, 1)
-    OII_Hb_err = read_column(Maio_file, 2)
+    OII_Hb_unc = read_column(Maio_file, 2)
     OIIIb_Hb = read_column(Maio_file, 3)
-    OIIIb_Hb_err = read_column(Maio_file, 4)
+    OIIIb_Hb_unc = read_column(Maio_file, 4)
     OIIIb_OII = read_column(Maio_file, 5)
-    OIIIb_OII_err = read_column(Maio_file, 6)
+    OIIIb_OII_unc = read_column(Maio_file, 6)
     R23 = read_column(Maio_file, 7)
-    R23_err = read_column(Maio_file, 8)
+    R23_unc = read_column(Maio_file, 8)
     NeIII_OII = read_column(Maio_file, 9)
-    NeIII_OII_err = read_column(Maio_file, 10)
+    NeIII_OII_unc = read_column(Maio_file, 10)
     NII_Ha = read_column(Maio_file, 11)
-    NII_Ha_err = read_column(Maio_file, 12)
+    NII_Ha_unc = read_column(Maio_file, 12)
     OIIIb_NII = read_column(Maio_file, 13)
-    OIIIb_NII_err = read_column(Maio_file, 14)
+    OIIIb_NII_unc = read_column(Maio_file, 14)
 
     colors = ["C{:1d}".format(i) for i in range(7)]
     labels = [
@@ -716,14 +716,14 @@ def plot_relations(ratio_list=None, ax=None):
         "OIIIb/NII",
     ]
     obs_calib = [R23, OIIIb_Hb, OII_Hb, OIIIb_OII, NeIII_OII, NII_Ha, OIIIb_NII]
-    obs_calib_err = [
-        R23_err,
-        OIIIb_Hb_err,
-        OII_Hb_err,
-        OIIIb_OII_err,
-        NeIII_OII_err,
-        NII_Ha_err,
-        OIIIb_NII_err,
+    obs_calib_unc = [
+        R23_unc,
+        OIIIb_Hb_unc,
+        OII_Hb_unc,
+        OIIIb_OII_unc,
+        NeIII_OII_unc,
+        NII_Ha_unc,
+        OIIIb_NII_unc,
     ]
     art_list = []
 
@@ -734,8 +734,8 @@ def plot_relations(ratio_list=None, ax=None):
             )
             ax.fill_between(
                 Z_to_plot,
-                obs_calib[index] - obs_calib_err[index],
-                obs_calib[index] + obs_calib_err[index],
+                obs_calib[index] - obs_calib_unc[index],
+                obs_calib[index] + obs_calib_unc[index],
                 color=plt.getp(plot, "color"),
                 alpha=0.1,
             )
