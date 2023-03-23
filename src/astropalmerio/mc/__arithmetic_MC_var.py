@@ -1,4 +1,3 @@
-
 # NOTE: defining basic arithmetic operations for MC_var has proven too difficult
 # I leave my best attempt at the code here for now but eventually it should be deleted
 # def __add__(self, other):

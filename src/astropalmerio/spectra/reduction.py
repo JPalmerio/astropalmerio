@@ -55,8 +55,6 @@ def extract_1D_from_2D(wvlg, spatial, flux, spatial_bounds, uncertainty=None):
             extracted_unc += (
                 uncertainty[index_min + i] ** 2
             )  # quadratic sum for error propagation
-        extracted_unc = np.sqrt(
-            extracted_unc
-        )  # quadratic sum for error propagation
+        extracted_unc = np.sqrt(extracted_unc)  # quadratic sum for error propagation
 
     return wvlg, extracted_flux, extracted_unc

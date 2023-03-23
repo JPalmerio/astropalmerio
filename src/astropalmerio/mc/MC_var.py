@@ -51,7 +51,10 @@ class MC_var(object):
         if isinstance(uncertainty, (float, int)):
             self.uncertainty = {"minus": float(uncertainty), "plus": float(uncertainty)}
         elif isinstance(uncertainty, (list, np.ndarray)):
-            self.uncertainty = {"minus": float(uncertainty[0]), "plus": float(uncertainty[1])}
+            self.uncertainty = {
+                "minus": float(uncertainty[0]),
+                "plus": float(uncertainty[1]),
+            }
         elif isinstance(uncertainty, dict):
             self.uncertainty = uncertainty.copy()
         elif uncertainty is None:
@@ -69,7 +72,9 @@ class MC_var(object):
             raise ValueError("Cannot be upper and lower limit at the same time.")
         self.lim = {"lower": bool(lolim), "upper": bool(uplim)}
         if any(self.lim.values()) and any(self.uncertainty.values()):
-            raise ValueError("Either limits or uncertainties should be specified, not both.")
+            raise ValueError(
+                "Either limits or uncertainties should be specified, not both."
+            )
         if uplim and (val_min is None):
             raise ValueError("Please provide a minimum value if using upper limits")
         if lolim and (val_max is None):
@@ -313,4 +318,3 @@ class MC_var(object):
                 val_max=self.bounds["max"],
             )
         return x, pdf
-

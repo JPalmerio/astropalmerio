@@ -1,0 +1,24 @@
+name: astropalmerio_dev
+channels:
+  - conda-forge
+  - defaults
+dependencies:
+  - python=3.9
+  - numpy=1.24
+  - matplotlib=3.6
+  - pandas=1.5
+  - astropy=5.2
+  - scipy=1.10
+  - jupyter                      # For development
+  - pytest                       # For code testing
+  - pylint                       # For code quality
+  - coverage                     # For code quality
+  - sphinx=6.1                   # For documentation
+  - build                        # For building source distribution and wheels
+  - twine                        # For uploading sdist and wheels to PyPI
+  - pip                          # For additional packages not on conda
+  - pip:
+    - black                      # For code quality
+    - ruff                       # For code quality
+    - mplcyberpunk               # For nicer matplotlib colors
+    - cmasher                    # For nicer matplotlib colors

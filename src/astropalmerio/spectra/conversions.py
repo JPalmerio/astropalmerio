@@ -20,12 +20,12 @@ from astropy.units.quantity import Quantity
 log = logging.getLogger(__name__)
 
 ergscm2AA = u.def_unit(
-    s="ergscm2AA",
+    s="erg/s/cm2/AA",
     represents=u.Unit("erg s^-1 cm^-2 AA^-1"),
     format={"latex": r"\mathrm{erg\,s^{-1}\,cm^{-2}\,\mathring{A}^{-1}}"},
 )
 ergscm2 = u.def_unit(
-    s="ergscm2",
+    s="erg/s/cm2",
     represents=u.Unit("erg s^-1 cm^-2"),
     format={"latex": r"\mathrm{erg\,s^{-1}\,cm^{-2}}"},
 )

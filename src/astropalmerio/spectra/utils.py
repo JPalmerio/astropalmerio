@@ -23,7 +23,14 @@ log = logging.getLogger(__name__)
 
 
 def integrate_flux(
-    wvlg, flux, wvlg_min, wvlg_max, uncertainty=None, continuum=None, MC=False, N_MC=1000
+    wvlg,
+    flux,
+    wvlg_min,
+    wvlg_max,
+    uncertainty=None,
+    continuum=None,
+    MC=False,
+    N_MC=1000,
 ):
     """
     Calculate the integrated flux over a given wavelength range.

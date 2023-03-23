@@ -79,7 +79,7 @@ class EmissionLine(object):
 
     def to_latex_string(self):
         try:
-            latex_str = line_list.loc[self.name]["latex_str"]
+            latex_str = em_line_list.loc[self.name]["latex_str"]
         except KeyError:
             log.error(f"No latex string found for {self.name}, returning None.")
             latex_str = None
@@ -277,8 +277,11 @@ class EmissionLine(object):
         """
         with warnings.catch_warnings():
             # Ignore model linearity warning from the fitter
-            warnings.filterwarnings('ignore', message='Model is linear in parameters',
-                                    category=AstropyUserWarning)
+            warnings.filterwarnings(
+                "ignore",
+                message="Model is linear in parameters",
+                category=AstropyUserWarning,
+            )
             continuum_fit = fit_continuum(
                 spectrum=Spectrum1D(
                     spectral_axis=self.spectrum["wvlg"],
@@ -301,7 +304,7 @@ class EmissionLine(object):
         except KeyError:
             default_bounds = None
 
-        if 'continuum' not in self.fit.keys():
+        if "continuum" not in self.fit.keys():
             raise ValueError(
                 "You must fit the continuum before you can "
                 "measure a flux by integration."
@@ -314,7 +317,7 @@ class EmissionLine(object):
         flux, uncertainty = integrate_flux(
             wvlg=self.spectrum["wvlg"],
             flux=self.spectrum["flux"],
-            unc=self.spectrum["unc"],
+            uncertainty=self.spectrum["unc"],
             wvlg_min=wmin,
             wvlg_max=wmax,
             continuum=continuum,
@@ -334,7 +337,7 @@ class EmissionLine(object):
         bounds : None, optional
             Description
         """
-        if 'continuum' not in self.fit.keys():
+        if "continuum" not in self.fit.keys():
             raise ValueError(
                 "Please define a continuum before attempting to fit a line."
             )
@@ -356,17 +359,18 @@ class EmissionLine(object):
         }
 
         # Convert to same units
-        initial_guess['stddev'] = initial_guess['stddev'].to(initial_guess['mean'].unit)
+        initial_guess["stddev"] = initial_guess["stddev"].to(initial_guess["mean"].unit)
 
         self.fit["bounds"] = (wmin, wmax)
         self.fit["initial_guess"] = initial_guess
 
         g_init = Gaussian1D(**initial_guess)
 
-        log.debug(f"About to fit with bounds: {self.fit['bounds']} "
+        log.debug(
+            f"About to fit with bounds: {self.fit['bounds']} "
             f"and initial guess: {g_init} "
             f"and additional arguments: {args}"
-            )
+        )
         g_fit = fit_lines(
             spectrum=Spectrum1D(
                 spectral_axis=self.spectrum["wvlg"],
@@ -376,7 +380,7 @@ class EmissionLine(object):
             model=g_init,
             get_fit_info=True,
             window=SpectralRegion(*self.fit["bounds"]),
-            **args
+            **args,
         )
 
         # This is a bit contrived but necessary to get the units
@@ -412,8 +416,8 @@ class EmissionLine(object):
             wvlg_max=wmax,
         )
 
-        if not self.fit['results']:
-            self.fit['results'] = {}
+        if not self.fit["results"]:
+            self.fit["results"] = {}
 
         self.fit["results"]["mean"] = line_center
         self.fit["results"]["stddev"] = line_width
@@ -446,32 +450,55 @@ class EmissionLine(object):
         self.fit = {}
         # important to use dict(self.properties) to create a copy
         for k, v in dict(self.properties).items():
-            if '_fit' in k:
+            if "_fit" in k:
                 self.properties.pop(k)
 
     def reset_continuum(self):
-        if 'continuum' not in self.fit.keys():
+        if "continuum" not in self.fit.keys():
             log.warning("No continuum to reset")
             return
         log.info("Resetting continuum.")
-        self.fit.pop('continuum')
+        self.fit.pop("continuum")
+
+    def reset_measured_flux(self):
+        for k in ["flux_int_bounds", "flux_int", "flux_int_unc"]:
+            self.properties.pop(k)
 
     def fit_summary(self):
         fit_summary = (
-            "Fit summary\n"
-            + "-------------\n"
-            + f"Line name: {self.name}\n"
-            + f"Fit bounds (min): {self.fit['bounds'][0]:.3f}\n"
-            + f"Fit bounds (max): {self.fit['bounds'][1]:.3f}\n"
-            + f"Redshift: {self.properties['z_fit']:.5f}\n"
-            + f"Flux (model): {self.properties['flux_fit'].to(ergscm2):.2e}\n"
-            + f"FWHM: {self.properties['FWHM_vel_fit']:.1f}\n"
+            "Fit summary\n" + "-------------\n" + f"Line name:\n {self.name}\n"
         )
+
+        # Fit bounds
         try:
-            fit_summary += "Flux (measured): "
-            f"{self.properties['flux_int'].to(ergscm2):.2e}\n"
-            fit_summary += "Flux uncertainty (measured): "
-            f"{self.properties['flux_int_unc'].to(ergscm2):.2e}\n"
+            fit_summary = (
+                fit_summary
+                + f"Fit bounds (min):\n {self.fit['bounds'][0]:.3f}\n"
+                + f"Fit bounds (max):\n {self.fit['bounds'][1]:.3f}\n"
+            )
+        except KeyError:
+            pass
+
+        # Model fitting
+        try:
+            fit_summary = (
+                fit_summary
+                + f"Redshift (fit):\n {self.properties['z_fit']:.5f}\n"
+                + f"Flux (fit):\n {self.properties['flux_fit'].to(ergscm2):.2e}\n"
+                + f"FWHM (fit):\n {self.properties['FWHM_vel_fit']:.1f}\n"
+            )
+        except KeyError:
+            pass
+
+        # Measured flux by direct integration
+        try:
+            fit_summary = (
+                fit_summary
+                + "Flux (measured):\n"
+                + f" {self.properties['flux_int'].to(ergscm2):.2e}\n"
+                + "Flux uncertainty (measured):\n"
+                + f" {self.properties['flux_int_unc'].to(ergscm2):.2e}\n"
+            )
         except KeyError:
             pass
 
@@ -502,7 +529,7 @@ class EmissionLine(object):
             Description
         """
 
-        if 'continuum' not in self.fit.keys():
+        if "continuum" not in self.fit.keys():
             raise ValueError("Please fit a continuum before attempting to plot it.")
 
         self.show_spectrum(ax=ax, **show_spec_kwargs)
