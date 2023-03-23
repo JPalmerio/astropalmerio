@@ -4,6 +4,7 @@ __all__ = "EmissionLine"
 
 import logging
 from pathlib import Path
+import warnings
 import numpy as np
 import pandas as pd
 
@@ -11,6 +12,7 @@ import astropy.units as u
 from astropy.units.quantity import Quantity
 from astropy.nddata import StdDevUncertainty
 from astropy.modeling.models import Gaussian1D
+from astropy.utils.exceptions import AstropyUserWarning
 
 from specutils import Spectrum1D, SpectralRegion
 from specutils.fitting.continuum import fit_continuum
@@ -21,18 +23,18 @@ from astropalmerio.mc.utils import format_to_string
 from astropalmerio.io.fits import read_fits_1D_spectrum, read_fits_2D_spectrum
 from .utils import measure_noise, integrate_flux, gaussian_infinite_integral
 from .visualization import plot_spectrum, plot_continuum, plot_fit
-from .conversions import sigma_to_fwhm, fwhm_w2v, ergscm2AA
+from .conversions import sigma_to_fwhm, fwhm_w2v, ergscm2AA, ergscm2
 from .reduction import extract_1D_from_2D
 
 log = logging.getLogger(__name__)
 
 fname_em_line = DIRS["DATA"] / "emission_lines.tsv"
-line_list = pd.read_csv(
+em_line_list = pd.read_csv(
     fname_em_line,
     sep="\t",
     comment="#",
 )
-line_list.set_index("name", inplace=True)
+em_line_list.set_index("name", inplace=True)
 
 
 class EmissionLine(object):
@@ -42,11 +44,15 @@ class EmissionLine(object):
         rest_awav=None,
         z_guess=None,
         detected=True,
+        line_list=None,
     ):
         self.name = name
         self.properties = {}
         self.spectrum = {}
         self.fit = {}
+
+        if line_list is None:
+            line_list = em_line_list
 
         if rest_awav is None:
             try:
@@ -72,7 +78,12 @@ class EmissionLine(object):
         self.properties["detected"] = bool(detected)
 
     def to_latex_string(self):
-        return line_list.loc[self.name]["latex_str"]
+        try:
+            latex_str = line_list.loc[self.name]["latex_str"]
+        except KeyError:
+            log.error(f"No latex string found for {self.name}, returning None.")
+            latex_str = None
+        return latex_str
 
     def load_from_1D_file(self, fname, **args):
         """Summary
@@ -179,7 +190,7 @@ class EmissionLine(object):
 
         if bounds is None:
             # If no bounds and a redshift guess is provided
-            # try to define reasonable bounds of ~ 100 Angstrom around
+            # try to define reasonable bounds of ~ 100 Angstrom restframe around
             # the expected line center
             if "z_guess" in self.properties.keys():
                 wmin = self.properties["obs_awav_guess"] - 50 * u.AA * (
@@ -264,15 +275,20 @@ class EmissionLine(object):
         TYPE
             Description
         """
-        continuum_fit = fit_continuum(
-            spectrum=Spectrum1D(
-                spectral_axis=self.spectrum["wvlg"],
-                flux=self.spectrum["flux"],
-                uncertainty=StdDevUncertainty(self.spectrum["unc"]),
-            ),
-            window=regions,
-            **args,
-        )
+        with warnings.catch_warnings():
+            # Ignore model linearity warning from the fitter
+            warnings.filterwarnings('ignore', message='Model is linear in parameters',
+                                    category=AstropyUserWarning)
+            continuum_fit = fit_continuum(
+                spectrum=Spectrum1D(
+                    spectral_axis=self.spectrum["wvlg"],
+                    flux=self.spectrum["flux"],
+                    uncertainty=StdDevUncertainty(self.spectrum["unc"]),
+                ),
+                window=regions,
+                **args,
+            )
+
         self.fit["continuum"] = {
             "regions": regions,
             "flux": continuum_fit(self.spectrum["wvlg"]),
@@ -285,13 +301,13 @@ class EmissionLine(object):
         except KeyError:
             default_bounds = None
 
-        try:
-            continuum = self.fit["continuum"]["flux"]
-        except KeyError:
+        if 'continuum' not in self.fit.keys():
             raise ValueError(
                 "You must fit the continuum before you can "
                 "measure a flux by integration."
             )
+        else:
+            continuum = self.fit["continuum"]["flux"]
 
         wmin, wmax = self._get_bounds(bounds, default=default_bounds)
 
@@ -318,6 +334,10 @@ class EmissionLine(object):
         bounds : None, optional
             Description
         """
+        if 'continuum' not in self.fit.keys():
+            raise ValueError(
+                "Please define a continuum before attempting to fit a line."
+            )
 
         wmin, wmax = self._get_bounds(bounds)
 
@@ -327,19 +347,26 @@ class EmissionLine(object):
             mean_guess = np.median(self.spectrum["wvlg"])
 
         initial_guess = {
-            "mean": args.get("mean", mean_guess),
-            "stddev": args.get("stddev", 1 * u.AA),
-            "amplitude": args.get(
+            "mean": args.pop("mean", mean_guess),
+            "stddev": args.pop("stddev", 1 * u.AA),
+            "amplitude": args.pop(
                 "amplitude",
                 np.max(self.spectrum["flux"] - self.fit["continuum"]["flux"]),
             ),
         }
+
+        # Convert to same units
+        initial_guess['stddev'] = initial_guess['stddev'].to(initial_guess['mean'].unit)
 
         self.fit["bounds"] = (wmin, wmax)
         self.fit["initial_guess"] = initial_guess
 
         g_init = Gaussian1D(**initial_guess)
 
+        log.debug(f"About to fit with bounds: {self.fit['bounds']} "
+            f"and initial guess: {g_init} "
+            f"and additional arguments: {args}"
+            )
         g_fit = fit_lines(
             spectrum=Spectrum1D(
                 spectral_axis=self.spectrum["wvlg"],
@@ -349,6 +376,7 @@ class EmissionLine(object):
             model=g_init,
             get_fit_info=True,
             window=SpectralRegion(*self.fit["bounds"]),
+            **args
         )
 
         # This is a bit contrived but necessary to get the units
@@ -367,15 +395,13 @@ class EmissionLine(object):
         self.fit["residuals"] = (
             self.spectrum["flux"] - self.fit["flux"]
         ) / self.spectrum["unc"]
+        log.debug(f"Best fit: {self.fit['model']}")
 
     def derive_upper_limit(self, line_center, line_width, bounds=None):
-        try:
-            default_bounds = (
-                line_center + 3 * line_width,
-                line_center - 3 * line_width,
-            )
-        except KeyError:
-            default_bounds = None
+        default_bounds = (
+            line_center + 3 * line_width,
+            line_center - 3 * line_width,
+        )
 
         wmin, wmax = self._get_bounds(bounds, default=default_bounds)
 
@@ -385,6 +411,9 @@ class EmissionLine(object):
             wvlg_min=wmin,
             wvlg_max=wmax,
         )
+
+        if not self.fit['results']:
+            self.fit['results'] = {}
 
         self.fit["results"]["mean"] = line_center
         self.fit["results"]["stddev"] = line_width
@@ -396,10 +425,13 @@ class EmissionLine(object):
         )
 
     def derive_properties_from_fit(self):
+        if not self.fit:
+            raise ValueError("No fit from which to derive properties.")
+
         self.properties["obs_awav_fit"] = self.fit["results"]["mean"]
-        self.properties["FWHM_lam"] = sigma_to_fwhm(self.fit["results"]["stddev"])
-        self.properties["FWHM_vel"] = fwhm_w2v(
-            fwhm_w=self.properties["FWHM_lam"], w0=self.properties["obs_awav_fit"]
+        self.properties["FWHM_lam_fit"] = sigma_to_fwhm(self.fit["results"]["stddev"])
+        self.properties["FWHM_vel_fit"] = fwhm_w2v(
+            fwhm_w=self.properties["FWHM_lam_fit"], w0=self.properties["obs_awav_fit"]
         )
         self.properties["flux_fit"] = gaussian_infinite_integral(
             amplitude=self.fit["results"]["amplitude"],
@@ -408,6 +440,42 @@ class EmissionLine(object):
         self.properties["z_fit"] = (
             self.properties["obs_awav_fit"] / self.properties["rest_awav"] - 1
         )
+
+    def reset_fit(self):
+        log.info("Resetting fit.")
+        self.fit = {}
+        # important to use dict(self.properties) to create a copy
+        for k, v in dict(self.properties).items():
+            if '_fit' in k:
+                self.properties.pop(k)
+
+    def reset_continuum(self):
+        if 'continuum' not in self.fit.keys():
+            log.warning("No continuum to reset")
+            return
+        log.info("Resetting continuum.")
+        self.fit.pop('continuum')
+
+    def fit_summary(self):
+        fit_summary = (
+            "Fit summary\n"
+            + "-------------\n"
+            + f"Line name: {self.name}\n"
+            + f"Fit bounds (min): {self.fit['bounds'][0]:.3f}\n"
+            + f"Fit bounds (max): {self.fit['bounds'][1]:.3f}\n"
+            + f"Redshift: {self.properties['z_fit']:.5f}\n"
+            + f"Flux (model): {self.properties['flux_fit'].to(ergscm2):.2e}\n"
+            + f"FWHM: {self.properties['FWHM_vel_fit']:.1f}\n"
+        )
+        try:
+            fit_summary += "Flux (measured): "
+            f"{self.properties['flux_int'].to(ergscm2):.2e}\n"
+            fit_summary += "Flux uncertainty (measured): "
+            f"{self.properties['flux_int_unc'].to(ergscm2):.2e}\n"
+        except KeyError:
+            pass
+
+        return fit_summary
 
     # Visualization stuff
     def show_spectrum(self, ax=None, **kwargs):
@@ -434,6 +502,9 @@ class EmissionLine(object):
             Description
         """
 
+        if 'continuum' not in self.fit.keys():
+            raise ValueError("Please fit a continuum before attempting to plot it.")
+
         self.show_spectrum(ax=ax, **show_spec_kwargs)
         plot_continuum(
             wvlg=self.spectrum["wvlg"],
@@ -446,6 +517,10 @@ class EmissionLine(object):
     def show_fit(
         self, model_plot_kw={}, spec_plot_kw={}, resid_plot_kw={}, show_legend=True
     ):
+
+        if not self.fit:
+            raise ValueError("No fit to plot.")
+
         if self.properties["detected"]:
             flux_str = format_to_string(
                 gaussian_infinite_integral(

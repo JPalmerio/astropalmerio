@@ -9,6 +9,8 @@ __all__ = [
     "fwhm_w2v",
     "fwhm_to_sigma",
     "sigma_to_fwhm",
+    "ergscm2AA",
+    "ergscm2",
     "EmissionLine",
     "extract_1D_from_2D",
     "integrate_flux",
@@ -36,6 +38,8 @@ from astropalmerio.spectra.conversions import (
     fwhm_w2v,
     fwhm_to_sigma,
     sigma_to_fwhm,
+    ergscm2AA,
+    ergscm2,
 )
 from astropalmerio.spectra.emission_lines import EmissionLine
 from astropalmerio.spectra.reduction import extract_1D_from_2D

@@ -9,6 +9,7 @@ __all__ = [
     "fwhm_w2v",
     "fwhm_to_sigma",
     "sigma_to_fwhm",
+    "ergscm2AA",
 ]
 
 import logging
@@ -22,6 +23,11 @@ ergscm2AA = u.def_unit(
     s="ergscm2AA",
     represents=u.Unit("erg s^-1 cm^-2 AA^-1"),
     format={"latex": r"\mathrm{erg\,s^{-1}\,cm^{-2}\,\mathring{A}^{-1}}"},
+)
+ergscm2 = u.def_unit(
+    s="ergscm2",
+    represents=u.Unit("erg s^-1 cm^-2"),
+    format={"latex": r"\mathrm{erg\,s^{-1}\,cm^{-2}}"},
 )
 
 
