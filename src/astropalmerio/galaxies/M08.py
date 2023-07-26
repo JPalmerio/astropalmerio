@@ -28,8 +28,6 @@ __all__ = [
 import numpy as np
 import matplotlib.pyplot as plt
 
-plt.style.use("ggplot")
-
 
 Maio_file = "./data/met_cal_for_M08_method.txt"
 Z_sun = 8.69

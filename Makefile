@@ -1,4 +1,4 @@
-VERSION = "0.1.0"
+VERSION = "0.1.1"
 PKG_NAME = 'astropalmerio'
 
 upload2pip: version pybuild twine

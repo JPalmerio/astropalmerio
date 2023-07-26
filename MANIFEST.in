@@ -1,0 +1,2 @@
+include src/astropalmerio/data/*.tsv
+include src/astropalmerio/data/*.txt

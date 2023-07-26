@@ -50,7 +50,7 @@ class MC_var(object):
         # Uncertainties
         if isinstance(uncertainty, (float, int)):
             self.uncertainty = {"minus": float(uncertainty), "plus": float(uncertainty)}
-        elif isinstance(uncertainty, (list, np.ndarray)):
+        elif isinstance(uncertainty, (tuple, list, np.ndarray)):
             self.uncertainty = {
                 "minus": float(uncertainty[0]),
                 "plus": float(uncertainty[1]),
@@ -59,6 +59,9 @@ class MC_var(object):
             self.uncertainty = uncertainty.copy()
         elif uncertainty is None:
             self.uncertainty = {"minus": None, "plus": None}
+        else:
+            raise ValueError("Uncertainty not understood")
+
         for k, unc in self.uncertainty.items():
             if unc is not None:
                 if unc < 0:

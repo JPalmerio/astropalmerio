@@ -21,6 +21,8 @@ extensions = [
     "sphinx.ext.doctest",
     "sphinx.ext.autodoc",
     "sphinx.ext.autosummary",
+    "sphinx.ext.autosectionlabel",
+    "sphinx_automodapi.automodapi",
     "sphinx.ext.intersphinx",
 ]
 
@@ -39,3 +41,17 @@ exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store']
 
 html_theme = 'sphinx_rtd_theme'
 html_static_path = ['_static']
+
+
+# Support tooltips on references
+extensions += ['hoverxref.extension']
+hoverxref_auto_ref = True
+hoverxref_intersphinx = [
+    'python',
+    'pip',
+    'build',
+    'PyPUG',
+    'packaging',
+    'twine',
+    'importlib-resources',
+]
