@@ -2,7 +2,7 @@
 # calibrations and corresponding uncertainties are taken from Maiolino et al. 2008 [e.g. Fig. 5]
 # below, OII is a sum of both components, OIIIb = OIII_5007 
 #
-#[0] Z [1] log OII/HB [2] err [3] log OIIIb/Hb [4] err [5] log OIIIb/OII [6] err [7] log R23 [8] err [9] log NeIII/OII [10] err [11] log NII/Ha [12] err [13] log OIII/NII [14] err
+#[0] Z [1] log OII/HB [2] err [3] log OIIIb/Hb [4] err [5] log OIIIb/OII [6] err [7] log R23 [8] err [9] log NeIII/OII [10] err [11] log NIIb/Ha [12] err [13] log OIIIb/NIIb [14] err
 7.00000e+00 -1.10607e+00 1.17995e-01 4.23733e-02 1.84092e-01 1.15603e+00 3.17664e-01 1.80875e-01 2.12359e-01 1.54862e-01 2.82103e-01 -2.90498e+00 1.41200e-01 2.16423e+00 9.80000e-02
 7.02000e+00 -1.04783e+00 1.24782e-01 7.30706e-02 1.79200e-01 1.14959e+00 3.15994e-01 2.21283e-01 2.07381e-01 1.43019e-01 2.80234e-01 -2.85700e+00 1.41200e-01 2.18303e+00 9.80000e-02
 7.04000e+00 -9.92418e-01 1.31230e-01 1.03104e-01 1.74455e-01 1.14289e+00 3.14317e-01 2.60026e-01 2.02531e-01 1.31058e-01 2.78374e-01 -2.81082e+00 1.41200e-01 2.20072e+00 9.80000e-02

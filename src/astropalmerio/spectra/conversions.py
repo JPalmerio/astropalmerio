@@ -153,7 +153,7 @@ def fwhm_v2w(fwhm_v, w0):
     # This is necessary because velocity to wavelength is symmetric but
     # not linear
     hwhm_v = fwhm_v / 2.0
-    fwhm_w = 2.0 * hwhm_v.to(w0.unit, equivalencies=u.doppler_optical(w0)) - w0
+    fwhm_w = 2.0 * (hwhm_v.to(w0.unit, equivalencies=u.doppler_optical(w0)) - w0)
     return fwhm_w
 
 

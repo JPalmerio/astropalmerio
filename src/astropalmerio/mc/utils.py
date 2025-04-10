@@ -50,6 +50,8 @@ def format_to_string(
     ValueError
         Description
     """
+    if not np.isfinite(value):
+        raise ValueError("Value is not finite")
     if uncertainty is not None and lim_type is not None:
         log.warning(
             "Both uncertainty and limits are not None, "
